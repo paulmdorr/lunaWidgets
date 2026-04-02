@@ -23,7 +23,7 @@ export function TitleBar({
         {icon && <span style={styles.icon}>{icon}</span>}
         <span style={styles.title}>{title}</span>
       </div>
-      <div style={styles.right} onMouseDown={(e) => e.stopPropagation()}>
+      <div style={{ ...styles.right, WebkitAppRegion: "no-drag" } as React.CSSProperties}>
         {timeAgo && <span style={styles.time}>{timeAgo}</span>}
         <button
           onClick={onRefresh}

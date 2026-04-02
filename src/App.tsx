@@ -1,9 +1,8 @@
-import { useState, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { useState, useEffect, useCallback } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { WidgetConfig } from "./types/notion";
 import { loadConfig, saveConfig, isConfigured } from "./services/config";
 import { useNotionPage } from "./hooks/useNotionPage";
-import { useDrag } from "./hooks/useDrag";
 import { SetupScreen } from "./components/SetupScreen";
 import { TitleBar } from "./components/TitleBar";
 import { BlockRenderer } from "./components/BlockRenderer";
@@ -13,7 +12,12 @@ import type { NotionDatabase } from "./types/notion";
 export default function App() {
   const [config, setConfig] = useState<WidgetConfig>(loadConfig);
   const [showSetup, setShowSetup] = useState(!isConfigured(config));
-  const { onMouseDown } = useDrag();
+  // Pin to bottom on startup if already configured
+  useEffect(() => {
+    if (isConfigured(config)) {
+      getCurrentWindow().setAlwaysOnBottom(true);
+    }
+  }, []);
 
   const { page, loading, error, refresh, lastRefresh } =
     useNotionPage(config);
@@ -22,7 +26,7 @@ export default function App() {
     saveConfig(newConfig);
     setConfig(newConfig);
     setShowSetup(false);
-    invoke("enable_no_activate");
+    getCurrentWindow().setAlwaysOnBottom(true);
   }, []);
 
   // ── Setup screen ──
@@ -34,17 +38,17 @@ export default function App() {
 
   // ── Main widget ──
   return (
-    <div style={styles.widget} onMouseDown={onMouseDown}>
+    <div style={{ ...styles.widget, WebkitAppRegion: "drag" } as React.CSSProperties}>
       <TitleBar
         title={page?.title ?? "Loading..."}
         icon={page?.icon}
         loading={loading}
         lastRefresh={lastRefresh}
         onRefresh={refresh}
-        onSettings={() => invoke("disable_no_activate").then(() => setShowSetup(true))}
+        onSettings={() => setShowSetup(true)}
       />
 
-      <div style={styles.content}>
+      <div style={{ ...styles.content, WebkitAppRegion: "no-drag" } as React.CSSProperties}>
         {error && (
           <div style={styles.error}>
             <span>⚠ {error}</span>

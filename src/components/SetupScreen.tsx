@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { WidgetConfig } from "../types/notion";
-import { useDrag } from "../hooks/useDrag";
 
 interface Props {
   initialConfig: WidgetConfig;
@@ -8,7 +7,6 @@ interface Props {
 }
 
 export function SetupScreen({ initialConfig, onSave }: Props) {
-  const { onMouseDown } = useDrag();
   const [token, setToken] = useState(initialConfig.notionToken);
   const [pageId, setPageId] = useState(initialConfig.pageId);
   const [interval, setInterval] = useState(
@@ -24,7 +22,7 @@ export function SetupScreen({ initialConfig, onSave }: Props) {
   };
 
   return (
-    <div style={styles.container} onMouseDown={onMouseDown}>
+    <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.header}>
           <span style={styles.icon}>⚙</span>

@@ -4,6 +4,7 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
+    "core:window:allow-set-always-on-bottom",
     "http:default",
     {
       "identifier": "http:allow-fetch",
