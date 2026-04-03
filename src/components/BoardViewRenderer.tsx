@@ -1,4 +1,5 @@
 import type { NotionDatabase } from "../types/notion";
+import styles from "./BoardViewRenderer.module.css";
 
 const STATUS_COLORS: Record<string, string> = {
   gray: "#9b9b9b",
@@ -33,21 +34,19 @@ export function BoardViewRenderer({ database }: Props) {
   }
 
   return (
-    <div style={styles.container}>
+    <div className={styles.container}>
       {statusGroups.map((statusGroup) => (
-        <div key={statusGroup.name} style={styles.group}>
-          <div style={styles.groupHeader}>
+        <div key={statusGroup.name} className={styles.group}>
+          <div className={styles.groupHeader}>
             <span
-              style={{
-                ...styles.dot,
-                background: STATUS_COLORS[statusGroup.color] ?? STATUS_COLORS.default,
-              }}
+              className={styles.dot}
+              style={{ background: STATUS_COLORS[statusGroup.color] ?? STATUS_COLORS.default }}
             />
-            <span style={styles.statusGroupName}>{statusGroup.name}</span>
-            <span style={styles.count}>{statusGroup.rows.length}</span>
+            <span className={styles.groupName}>{statusGroup.name}</span>
+            <span className={styles.count}>{statusGroup.rows.length}</span>
           </div>
           {statusGroup.rows.map((row) => (
-            <div key={row.id} style={styles.row}>
+            <div key={row.id} className={styles.row}>
               {row.title}
             </div>
           ))}
@@ -56,48 +55,3 @@ export function BoardViewRenderer({ database }: Props) {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  group: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-  },
-  groupHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 4,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
-    flexShrink: 0,
-  },
-  statusGroupName: {
-    fontSize: 11,
-    fontWeight: 600,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
-    color: "var(--text-muted)",
-    flex: 1,
-  },
-  count: {
-    fontSize: 11,
-    color: "var(--text-muted)",
-  },
-  row: {
-    fontSize: 13,
-    color: "var(--text-primary)",
-    padding: "5px 8px",
-    borderRadius: "var(--radius-sm)",
-    background: "var(--bg-secondary)",
-    lineHeight: 1.4,
-  },
-};

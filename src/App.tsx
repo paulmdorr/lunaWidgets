@@ -1,26 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import type { WidgetConfig } from "./types/notion";
+import type { WidgetConfig, NotionDatabase } from "./types/notion";
 import { loadConfig, saveConfig, isConfigured } from "./services/config";
 import { useNotionPage } from "./hooks/useNotionPage";
 import { SetupScreen } from "./components/SetupScreen";
 import { TitleBar } from "./components/TitleBar";
 import { BlockRenderer } from "./components/BlockRenderer";
 import { BoardViewRenderer } from "./components/BoardViewRenderer";
-import type { NotionDatabase } from "./types/notion";
+import styles from "./App.module.css";
 
 export default function App() {
   const [config, setConfig] = useState<WidgetConfig>(loadConfig);
   const [showSetup, setShowSetup] = useState(!isConfigured(config));
-  
+
   useEffect(() => {
     if (isConfigured(config)) {
       getCurrentWindow().setAlwaysOnBottom(true);
     }
   }, []);
 
-  const { page, loading, error, refresh, lastRefresh } =
-    useNotionPage(config);
+  const { page, loading, error, refresh, lastRefresh } = useNotionPage(config);
 
   const handleSaveConfig = useCallback((newConfig: WidgetConfig) => {
     saveConfig(newConfig);
@@ -29,16 +28,12 @@ export default function App() {
     getCurrentWindow().setAlwaysOnBottom(true);
   }, []);
 
-  // ── Setup screen ──
   if (showSetup) {
-    return (
-      <SetupScreen initialConfig={config} onSave={handleSaveConfig} />
-    );
+    return <SetupScreen initialConfig={config} onSave={handleSaveConfig} />;
   }
 
-  // ── Main widget ──
   return (
-    <div style={{ ...styles.widget, WebkitAppRegion: "drag" } as React.CSSProperties}>
+    <div className={styles.widget}>
       <TitleBar
         title={page?.title ?? "Loading..."}
         icon={page?.icon}
@@ -48,19 +43,19 @@ export default function App() {
         onSettings={() => setShowSetup(true)}
       />
 
-      <div style={{ ...styles.content, WebkitAppRegion: "no-drag" } as React.CSSProperties}>
+      <div className={styles.content}>
         {error && (
-          <div style={styles.error}>
+          <div className={styles.error}>
             <span>⚠ {error}</span>
-            <button onClick={refresh} style={styles.retryBtn}>
+            <button onClick={refresh} className={styles.retryBtn}>
               Retry
             </button>
           </div>
         )}
 
         {!error && !page && loading && (
-          <div style={styles.loading}>
-            <span style={styles.loadingDot}>●</span>
+          <div className={styles.loading}>
+            <span className={styles.loadingDot}>●</span>
             Fetching page...
           </div>
         )}
@@ -80,50 +75,3 @@ export default function App() {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  widget: {
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    background: "var(--bg-primary)",
-    borderRadius: "var(--radius)",
-    overflow: "hidden",
-  },
-  content: {
-    flex: 1,
-    overflowY: "auto" as const,
-    padding: "10px 14px 16px",
-  },
-  error: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "10px 12px",
-    background: "rgba(224, 108, 108, 0.12)",
-    borderRadius: "var(--radius-sm)",
-    color: "var(--danger)",
-    fontSize: 12,
-  },
-  retryBtn: {
-    background: "none",
-    border: "1px solid var(--danger)",
-    color: "var(--danger)",
-    padding: "3px 10px",
-    borderRadius: 4,
-    fontSize: 11,
-    cursor: "pointer",
-  },
-  loading: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    color: "var(--text-muted)",
-    fontSize: 12,
-    padding: 20,
-  },
-  loadingDot: {
-    animation: "pulse 1.2s ease-in-out infinite",
-    color: "var(--accent)",
-  },
-};

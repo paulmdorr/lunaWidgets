@@ -1,0 +1,154 @@
+.paragraph {
+  margin: 4px 0;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+.h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 18px 0 8px;
+  color: var(--text-primary);
+}
+
+.h2 {
+  font-size: 17px;
+  font-weight: 650;
+  margin: 14px 0 6px;
+  color: var(--text-primary);
+}
+
+.h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.listItem {
+  display: flex;
+  gap: 8px;
+  margin: 3px 0;
+  line-height: 1.6;
+}
+
+.bullet {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+.listContent {
+  flex: 1;
+}
+
+.todo {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 3px 0;
+  line-height: 1.6;
+}
+
+.todoUnchecked {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.todoChecked {
+  color: var(--success);
+}
+
+.todoDone {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.toggle {
+  margin: 4px 0;
+}
+
+.toggleSummary {
+  cursor: pointer;
+  color: var(--text-primary);
+  line-height: 1.6;
+  outline: none;
+}
+
+.toggleContent {
+  padding-left: 16px;
+  margin-top: 4px;
+}
+
+.codeBlock {
+  margin: 8px 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.codeLang {
+  display: block;
+  padding: 4px 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pre {
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  font-family: var(--font-mono);
+  overflow-x: auto;
+  color: var(--text-primary);
+}
+
+.quote {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+  margin: 8px 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.callout {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  background: var(--accent-dim);
+  border-radius: var(--radius-sm);
+  line-height: 1.6;
+}
+
+.calloutIcon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
+}
+
+.inlineCode {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--accent);
+}
+
+.link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
