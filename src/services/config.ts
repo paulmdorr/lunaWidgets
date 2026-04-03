@@ -6,6 +6,7 @@ const DEFAULT_CONFIG: WidgetConfig = {
   notionToken: "",
   pageId: "",
   refreshInterval: 60,
+  layouts: {},
 };
 
 export function loadConfig(): WidgetConfig {

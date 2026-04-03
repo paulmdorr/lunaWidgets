@@ -1,3 +1,4 @@
+import type { BoardLayout } from "../types/notion";
 import styles from "./TitleBar.module.css";
 
 interface Props {
@@ -7,6 +8,8 @@ interface Props {
   lastRefresh: Date | null;
   onRefresh: () => void;
   onSettings: () => void;
+  layout?: BoardLayout;
+  onToggleLayout?: () => void;
 }
 
 export function TitleBar({
@@ -16,6 +19,8 @@ export function TitleBar({
   lastRefresh,
   onRefresh,
   onSettings,
+  layout,
+  onToggleLayout,
 }: Props) {
   const timeAgo = lastRefresh ? formatTimeAgo(lastRefresh) : null;
 
@@ -27,6 +32,15 @@ export function TitleBar({
       </div>
       <div className={styles.right}>
         {timeAgo && <span className={styles.time}>{timeAgo}</span>}
+        {onToggleLayout && (
+          <button
+            onClick={onToggleLayout}
+            className={styles.btn}
+            title={layout === "horizontal" ? "Switch to vertical" : "Switch to horizontal"}
+          >
+            {layout === "horizontal" ? "⇥" : "⇩"}
+          </button>
+        )}
         <button
           onClick={onRefresh}
           className={styles.btn}

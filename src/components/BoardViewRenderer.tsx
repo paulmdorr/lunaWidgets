@@ -1,4 +1,6 @@
-import type { NotionDatabase } from "../types/notion";
+import { useEffect } from "react";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
+import type { BoardLayout, NotionDatabase } from "../types/notion";
 import styles from "./BoardViewRenderer.module.css";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -14,13 +16,19 @@ const STATUS_COLORS: Record<string, string> = {
   default: "#9b9b9b",
 };
 
+const COLUMN_WIDTH = 200;
+const COLUMN_GAP = 12;
+const PADDING = 28; // content area horizontal padding (14px * 2)
+const VERTICAL_MIN_WIDTH = 280;
+
 interface Props {
   database: NotionDatabase;
+  layout: BoardLayout;
 }
 
-export function BoardViewRenderer({ database }: Props) {
+export function BoardViewRenderer({ database, layout }: Props) {
   const orderedStatusGroups = database.statusGroups.map((g) => g.name);
-  const ungroupedStatusGroups = database.rows.filter((r) => !r.status || !orderedStatusGroups.includes(r.status));
+  const ungroupedStatuses = database.rows.filter((r) => !r.status || !orderedStatusGroups.includes(r.status));
   const statusGroups = orderedStatusGroups
     .map((name) => ({
       name,
@@ -29,14 +37,23 @@ export function BoardViewRenderer({ database }: Props) {
     }))
     .filter((g) => g.rows.length > 0);
 
-  if (ungroupedStatusGroups.length > 0) {
-    statusGroups.push({ name: "Other", color: "default", rows: ungroupedStatusGroups });
+  if (ungroupedStatuses.length > 0) {
+    statusGroups.push({ name: "Other", color: "default", rows: ungroupedStatuses });
   }
 
+  useEffect(() => {
+    const minWidth = layout === "horizontal"
+      ? statusGroups.length * COLUMN_WIDTH + (statusGroups.length - 1) * COLUMN_GAP + PADDING
+      : VERTICAL_MIN_WIDTH;
+    getCurrentWindow().setMinSize(new LogicalSize(minWidth, 200));
+  }, [layout, statusGroups.length]);
+
+  const isHorizontal = layout === "horizontal";
+
   return (
-    <div className={styles.container}>
+    <div className={isHorizontal ? styles.containerHorizontal : styles.container}>
       {statusGroups.map((statusGroup) => (
-        <div key={statusGroup.name} className={styles.group}>
+        <div key={statusGroup.name} className={isHorizontal ? styles.groupHorizontal : styles.group}>
           <div className={styles.groupHeader}>
             <span
               className={styles.dot}

@@ -50,10 +50,13 @@ export interface NotionPage {
   blocks: NotionBlock[];
 }
 
+export type BoardLayout = "vertical" | "horizontal";
+
 export interface WidgetConfig {
   notionToken: string;
   pageId: string;
   refreshInterval: number; // seconds
+  layouts: Record<string, BoardLayout>; // keyed by database ID
 }
 
 export interface DatabaseRow {

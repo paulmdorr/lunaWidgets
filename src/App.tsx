@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import type { WidgetConfig, NotionDatabase } from "./types/notion";
+import type { BoardLayout, NotionDatabase, WidgetConfig } from "./types/notion";
 import { loadConfig, saveConfig, isConfigured } from "./services/config";
 import { useNotionPage } from "./hooks/useNotionPage";
 import { SetupScreen } from "./components/SetupScreen";
@@ -28,6 +28,17 @@ export default function App() {
     getCurrentWindow().setAlwaysOnBottom(true);
   }, []);
 
+  const databaseId = page && "rows" in page ? page.id : null;
+  const layout: BoardLayout = databaseId ? (config.layouts[databaseId] ?? "vertical") : "vertical";
+
+  const handleToggleLayout = useCallback(() => {
+    if (!databaseId) return;
+    const next: BoardLayout = layout === "vertical" ? "horizontal" : "vertical";
+    const newConfig = { ...config, layouts: { ...config.layouts, [databaseId]: next } };
+    saveConfig(newConfig);
+    setConfig(newConfig);
+  }, [config, databaseId, layout]);
+
   if (showSetup) {
     return <SetupScreen initialConfig={config} onSave={handleSaveConfig} />;
   }
@@ -41,15 +52,15 @@ export default function App() {
         lastRefresh={lastRefresh}
         onRefresh={refresh}
         onSettings={() => setShowSetup(true)}
+        layout={databaseId ? layout : undefined}
+        onToggleLayout={databaseId ? handleToggleLayout : undefined}
       />
 
       <div className={styles.content}>
         {error && (
           <div className={styles.error}>
             <span>⚠ {error}</span>
-            <button onClick={refresh} className={styles.retryBtn}>
-              Retry
-            </button>
+            <button onClick={refresh} className={styles.retryBtn}>Retry</button>
           </div>
         )}
 
@@ -69,7 +80,10 @@ export default function App() {
         )}
 
         {page && "rows" in page && (
-          <BoardViewRenderer database={page as NotionDatabase} />
+          <BoardViewRenderer
+            database={page as NotionDatabase}
+            layout={layout}
+          />
         )}
       </div>
     </div>
