@@ -12,7 +12,7 @@ import type { NotionDatabase } from "./types/notion";
 export default function App() {
   const [config, setConfig] = useState<WidgetConfig>(loadConfig);
   const [showSetup, setShowSetup] = useState(!isConfigured(config));
-  // Pin to bottom on startup if already configured
+  
   useEffect(() => {
     if (isConfigured(config)) {
       getCurrentWindow().setAlwaysOnBottom(true);
