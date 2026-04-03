@@ -6,7 +6,7 @@ import { useNotionPage } from "./hooks/useNotionPage";
 import { SetupScreen } from "./components/SetupScreen";
 import { TitleBar } from "./components/TitleBar";
 import { BlockRenderer } from "./components/BlockRenderer";
-import { DatabaseRenderer } from "./components/DatabaseRenderer";
+import { BoardViewRenderer } from "./components/BoardViewRenderer";
 import type { NotionDatabase } from "./types/notion";
 
 export default function App() {
@@ -74,7 +74,7 @@ export default function App() {
         )}
 
         {page && "rows" in page && (
-          <DatabaseRenderer database={page as NotionDatabase} />
+          <BoardViewRenderer database={page as NotionDatabase} />
         )}
       </div>
     </div>

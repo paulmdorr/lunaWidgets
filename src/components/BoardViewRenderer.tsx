@@ -17,11 +17,10 @@ interface Props {
   database: NotionDatabase;
 }
 
-export function DatabaseRenderer({ database }: Props) {
-  // Group rows by status, preserving schema order
-  const groupOrder = database.statusGroups.map((g) => g.name);
-  const ungrouped = database.rows.filter((r) => !r.status || !groupOrder.includes(r.status));
-  const groups = groupOrder
+export function BoardViewRenderer({ database }: Props) {
+  const orderedStatusGroups = database.statusGroups.map((g) => g.name);
+  const ungroupedStatusGroups = database.rows.filter((r) => !r.status || !orderedStatusGroups.includes(r.status));
+  const statusGroups = orderedStatusGroups
     .map((name) => ({
       name,
       color: database.statusGroups.find((g) => g.name === name)?.color ?? "default",
@@ -29,25 +28,25 @@ export function DatabaseRenderer({ database }: Props) {
     }))
     .filter((g) => g.rows.length > 0);
 
-  if (ungrouped.length > 0) {
-    groups.push({ name: "Other", color: "default", rows: ungrouped });
+  if (ungroupedStatusGroups.length > 0) {
+    statusGroups.push({ name: "Other", color: "default", rows: ungroupedStatusGroups });
   }
 
   return (
     <div style={styles.container}>
-      {groups.map((group) => (
-        <div key={group.name} style={styles.group}>
+      {statusGroups.map((statusGroup) => (
+        <div key={statusGroup.name} style={styles.group}>
           <div style={styles.groupHeader}>
             <span
               style={{
                 ...styles.dot,
-                background: STATUS_COLORS[group.color] ?? STATUS_COLORS.default,
+                background: STATUS_COLORS[statusGroup.color] ?? STATUS_COLORS.default,
               }}
             />
-            <span style={styles.groupName}>{group.name}</span>
-            <span style={styles.count}>{group.rows.length}</span>
+            <span style={styles.statusGroupName}>{statusGroup.name}</span>
+            <span style={styles.count}>{statusGroup.rows.length}</span>
           </div>
-          {group.rows.map((row) => (
+          {statusGroup.rows.map((row) => (
             <div key={row.id} style={styles.row}>
               {row.title}
             </div>
@@ -81,7 +80,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "50%",
     flexShrink: 0,
   },
-  groupName: {
+  statusGroupName: {
     fontSize: 11,
     fontWeight: 600,
     textTransform: "uppercase" as const,
