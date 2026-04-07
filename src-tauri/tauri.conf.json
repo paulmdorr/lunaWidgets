@@ -21,7 +21,8 @@
         "alwaysOnTop": false,
         "resizable": true,
         "minWidth": 280,
-        "minHeight": 200
+        "minHeight": 200,
+        "dragDropEnabled": false
       }
     ],
     "security": {

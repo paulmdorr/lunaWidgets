@@ -83,6 +83,7 @@ export default function App() {
           <BoardViewRenderer
             database={page as NotionDatabase}
             layout={layout}
+            token={config.notionToken}
           />
         )}
       </div>

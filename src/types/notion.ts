@@ -72,4 +72,6 @@ export interface NotionDatabase {
   lastEdited: string;
   rows: DatabaseRow[];
   statusGroups: { name: string; color: string }[];
+  statusPropertyName: string;
+  statusPropertyType: "status" | "select";
 }

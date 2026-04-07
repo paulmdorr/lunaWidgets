@@ -112,15 +112,21 @@ async function fetchDatabase(
   // Extract status group order from schema
   const schemaProps = dbData.properties as Record<string, Record<string, unknown>>;
   let statusGroups: { name: string; color: string }[] = [];
-  for (const prop of Object.values(schemaProps)) {
+  let statusPropertyName = "Status";
+  let statusPropertyType: "status" | "select" = "status";
+  for (const [name, prop] of Object.entries(schemaProps)) {
     if (prop.type === "status") {
       const groups = (prop.status as { groups: { name: string; color: string }[] }).groups;
       statusGroups = groups.map((g) => ({ name: g.name, color: g.color }));
+      statusPropertyName = name;
+      statusPropertyType = "status";
       break;
     }
     if (prop.type === "select") {
       const options = (prop.select as { options: { name: string; color: string }[] }).options;
       statusGroups = options.map((o) => ({ name: o.name, color: o.color }));
+      statusPropertyName = name;
+      statusPropertyType = "select";
       break;
     }
   }
@@ -164,7 +170,34 @@ async function fetchDatabase(
     lastEdited: dbData.last_edited_time as string,
     rows,
     statusGroups,
+    statusPropertyName,
+    statusPropertyType,
   };
+}
+
+// ── Update a row's status property ──
+export async function updateRowStatus(
+  token: string,
+  rowId: string,
+  statusPropertyName: string,
+  statusPropertyType: "status" | "select",
+  newStatus: string
+): Promise<void> {
+  const res = await fetch(`${NOTION_API}/pages/${rowId}`, {
+    method: "PATCH",
+    headers: headers(token),
+    body: JSON.stringify({
+      properties: {
+        [statusPropertyName]: {
+          [statusPropertyType]: { name: newStatus },
+        },
+      },
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Notion API error: ${res.status} — ${body}`);
+  }
 }
 
 // ── Main: fetch a Notion page, auto-detecting page vs database ──

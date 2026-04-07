@@ -8,13 +8,16 @@
   display: flex;
   flex-direction: row;
   gap: 12px;
-  align-items: flex-start;
+  align-items: stretch;
+  height: 100%;
 }
 
 .group {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  position: relative;
+  -webkit-app-region: no-drag;
 }
 
 .groupHorizontal {
@@ -23,6 +26,8 @@
   gap: 2px;
   flex: 1;
   min-width: 0;
+  position: relative;
+  -webkit-app-region: no-drag;
 }
 
 .groupHeader {
@@ -60,4 +65,28 @@
   border-radius: var(--radius-sm);
   background: var(--bg-secondary);
   line-height: 1.4;
+  cursor: grab;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+.row:active {
+  cursor: grabbing;
+  opacity: 0.5;
+}
+
+.dropOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.dropOverlayActive {
+  pointer-events: auto;
+}
+
+.dropOverlayActiveHover {
+  background: var(--success-dim);
+  border: 1px dashed var(--success);
 }
