@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo } from 'react';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
-import type { BoardLayout, DatabaseRow, NotionDatabase } from '../types/notion';
-import { updateRowStatus } from '../services/notion';
+import type { BoardLayout, NotionDatabase } from '../types/notion';
+import { useDragDrop } from '../hooks/useDragDrop';
+import { cx } from '../utils/tools';
 import styles from './BoardViewRenderer.module.css';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -29,30 +30,34 @@ interface Props {
 }
 
 export function BoardViewRenderer({ database, layout, token }: Props) {
-  const [rows, setRows] = useState<DatabaseRow[]>(database.rows);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOverStatus, setDragOverStatus] = useState<string | null>();
+  const { rows, setRows, isDragging, dragOverStatus, getDragProps, getDropProps } = useDragDrop({
+    token,
+    statusPropertyName: database.statusPropertyName,
+    statusPropertyType: database.statusPropertyType,
+  });
 
-  // Sync rows when database prop changes (e.g. after refresh)
   useEffect(() => {
     setRows(database.rows);
   }, [database.rows]);
 
-  const orderedStatusGroups = database.statusGroups.map(g => g.name);
-  const ungroupedStatuses = rows.filter(r => !r.status || !orderedStatusGroups.includes(r.status));
-  const statusGroups = orderedStatusGroups.map(name => ({
-    name,
-    color: database.statusGroups.find(g => g.name === name)?.color ?? 'default',
-    rows: rows.filter(r => r.status === name),
-  }));
+  const statusGroups = useMemo(() => {
+    const ordered = database.statusGroups.map(g => g.name);
+    const ungrouped = rows.filter(r => !r.status || !ordered.includes(r.status));
+    const groups = ordered.map(name => ({
+      name,
+      color: database.statusGroups.find(g => g.name === name)?.color ?? 'default',
+      rows: rows.filter(r => r.status === name),
+    }));
 
-  if (ungroupedStatuses.length > 0) {
-    statusGroups.push({
-      name: 'Other',
-      color: 'default',
-      rows: ungroupedStatuses,
-    });
-  }
+    if (ungrouped.length > 0)
+      groups.push({
+        name: 'Other',
+        color: 'default',
+        rows: ungrouped,
+      });
+
+    return groups;
+  }, [rows, database.statusGroups]);
 
   useEffect(() => {
     const minWidth =
@@ -61,31 +66,6 @@ export function BoardViewRenderer({ database, layout, token }: Props) {
         : VERTICAL_MIN_WIDTH;
     getCurrentWindow().setMinSize(new LogicalSize(minWidth, 200));
   }, [layout, statusGroups.length]);
-
-  const handleDrop = useCallback(
-    (targetStatus: string, e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      setDragOverStatus(null);
-      const rowId = e.dataTransfer.getData('rowId');
-      const sourceStatus = e.dataTransfer.getData('sourceStatus');
-
-      if (!rowId || sourceStatus === targetStatus) return;
-
-      setRows(prev => prev.map(r => (r.id === rowId ? { ...r, status: targetStatus } : r)));
-
-      updateRowStatus(
-        token,
-        rowId,
-        database.statusPropertyName,
-        database.statusPropertyType,
-        targetStatus
-      ).catch(() => {
-        setRows(prev => prev.map(r => (r.id === rowId ? { ...r, status: sourceStatus } : r)));
-      });
-    },
-    [token, database.statusPropertyName, database.statusPropertyType]
-  );
 
   const isHorizontal = layout === 'horizontal';
 
@@ -107,26 +87,17 @@ export function BoardViewRenderer({ database, layout, token }: Props) {
             <span className={styles.count}>{statusGroup.rows.length}</span>
           </div>
           {statusGroup.rows.map(row => (
-            <div
-              key={row.id}
-              className={styles.row}
-              draggable
-              onDragStart={e => {
-                setTimeout(() => setIsDragging(true), 0);
-                e.dataTransfer.setData('rowId', row.id);
-                e.dataTransfer.setData('sourceStatus', statusGroup.name);
-              }}
-              onDragEnd={() => setIsDragging(false)}
-            >
+            <div key={row.id} className={styles.row} {...getDragProps(row.id, statusGroup.name)}>
               {row.title}
             </div>
           ))}
           <div
-            className={`${styles.dropOverlay} ${isDragging ? styles.dropOverlayActive : ''} ${dragOverStatus === statusGroup.name ? styles.dropOverlayActiveHover : ''}`}
-            onDragOver={e => e.preventDefault()}
-            onDrop={e => handleDrop(statusGroup.name, e)}
-            onDragEnter={() => setDragOverStatus(statusGroup.name)}
-            onDragLeave={() => setDragOverStatus(null)}
+            className={cx(
+              styles.dropOverlay,
+              isDragging && styles.dropOverlayActive,
+              dragOverStatus === statusGroup.name && styles.dropOverlayActiveHover
+            )}
+            {...getDropProps(statusGroup.name)}
           />
         </div>
       ))}
