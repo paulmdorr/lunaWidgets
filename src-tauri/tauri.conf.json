@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicecrab/schemastore/master/src/schemas/json/tauri-conf-v2.json",
-  "productName": "notion-widget",
+  "productName": "luna-widgets",
   "version": "0.1.0",
-  "identifier": "com.notion-widget.app",
+  "identifier": "com.luna-widgets.app",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Notion Widget",
+        "title": "Luna Widgets",
         "width": 360,
         "height": 500,
         "decorations": false,

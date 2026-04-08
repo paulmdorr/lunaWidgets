@@ -1,4 +1,4 @@
-# Notion Widget
+# Luna Widgets
 
 A lightweight, cross-platform desktop widget that displays Notion page content. Built with Tauri 2, React, and TypeScript.
 
@@ -62,7 +62,7 @@ Binaries will be in `src-tauri/target/release/`.
 ## Project Structure
 
 ```
-notion-widget/
+luna-widgets/
 ├── src/                        # React frontend
 │   ├── components/
 │   │   ├── BlockRenderer.tsx   # Renders Notion blocks

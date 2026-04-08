@@ -1,6 +1,6 @@
-import { useState } from "react";
-import type { WidgetConfig } from "../types/notion";
-import styles from "./SetupScreen.module.css";
+import { useState } from 'react';
+import type { WidgetConfig } from '../types/notion';
+import styles from './SetupScreen.module.css';
 
 interface Props {
   initialConfig: WidgetConfig;
@@ -10,9 +10,7 @@ interface Props {
 export function SetupScreen({ initialConfig, onSave }: Props) {
   const [token, setToken] = useState(initialConfig.notionToken);
   const [pageId, setPageId] = useState(initialConfig.pageId);
-  const [interval, setInterval] = useState(
-    String(initialConfig.refreshInterval)
-  );
+  const [interval, setInterval] = useState(String(initialConfig.refreshInterval));
 
   const handleSubmit = () => {
     onSave({
@@ -27,7 +25,7 @@ export function SetupScreen({ initialConfig, onSave }: Props) {
       <div className={styles.card}>
         <div className={styles.header}>
           <span className={styles.icon}>⚙</span>
-          <h2 className={styles.title}>Notion Widget</h2>
+          <h2 className={styles.title}>Luna Widgets</h2>
         </div>
         <p className={styles.desc}>
           Connect to a Notion page to display its content as a desktop widget.
@@ -37,12 +35,12 @@ export function SetupScreen({ initialConfig, onSave }: Props) {
         <input
           type="password"
           value={token}
-          onChange={(e) => setToken(e.target.value)}
+          onChange={e => setToken(e.target.value)}
           placeholder="ntn_..."
           className={styles.input}
         />
         <span className={styles.hint}>
-          Create one at{" "}
+          Create one at{' '}
           <a
             href="https://www.notion.so/my-integrations"
             target="_blank"
@@ -57,28 +55,22 @@ export function SetupScreen({ initialConfig, onSave }: Props) {
         <input
           type="text"
           value={pageId}
-          onChange={(e) => setPageId(e.target.value)}
+          onChange={e => setPageId(e.target.value)}
           placeholder="Paste page URL or ID"
           className={styles.input}
         />
-        <span className={styles.hint}>
-          The page must be shared with your integration
-        </span>
+        <span className={styles.hint}>The page must be shared with your integration</span>
 
         <label className={styles.labelSpaced}>Refresh interval (seconds)</label>
         <input
           type="number"
           value={interval}
-          onChange={(e) => setInterval(e.target.value)}
+          onChange={e => setInterval(e.target.value)}
           min={10}
           className={styles.inputSmall}
         />
 
-        <button
-          onClick={handleSubmit}
-          disabled={!token || !pageId}
-          className={styles.button}
-        >
+        <button onClick={handleSubmit} disabled={!token || !pageId} className={styles.button}>
           Connect
         </button>
       </div>
@@ -91,10 +83,8 @@ function extractPageId(input: string): string {
   const urlMatch = input.match(/([a-f0-9]{32})(?:\?|$)/);
   if (urlMatch) return urlMatch[1];
 
-  const uuidMatch = input.match(
-    /([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/
-  );
-  if (uuidMatch) return uuidMatch[1].replace(/-/g, "");
+  const uuidMatch = input.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/);
+  if (uuidMatch) return uuidMatch[1].replace(/-/g, '');
 
-  return input.replace(/-/g, "");
+  return input.replace(/-/g, '');
 }

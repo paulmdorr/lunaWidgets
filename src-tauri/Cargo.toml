@@ -1,5 +1,5 @@
 [package]
-name = "notion-widget"
+name = "luna-widgets"
 version = "0.1.0"
 description = "A desktop widget for Notion pages"
 authors = ["Pablo"]

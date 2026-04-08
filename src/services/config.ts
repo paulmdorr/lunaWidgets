@@ -1,10 +1,10 @@
-import type { WidgetConfig } from "../types/notion";
+import type { WidgetConfig } from '../types/notion';
 
-const STORAGE_KEY = "notion-widget-config";
+const STORAGE_KEY = 'luna-widgets-config';
 
 const DEFAULT_CONFIG: WidgetConfig = {
-  notionToken: "",
-  pageId: "",
+  notionToken: '',
+  pageId: '',
   refreshInterval: 60,
   layouts: {},
 };
