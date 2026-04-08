@@ -1,22 +1,31 @@
-import { useState, useEffect, useCallback } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import type { BoardLayout, NotionDatabase, WidgetConfig } from "./types/notion";
-import { loadConfig, saveConfig, isConfigured } from "./services/config";
-import { useNotionPage } from "./hooks/useNotionPage";
-import { SetupScreen } from "./components/SetupScreen";
-import { TitleBar } from "./components/TitleBar";
-import { BlockRenderer } from "./components/BlockRenderer";
-import { BoardViewRenderer } from "./components/BoardViewRenderer";
-import styles from "./App.module.css";
+import { useState, useEffect, useCallback } from 'react';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import type { BoardLayout, NotionDatabase, WidgetConfig } from './types/notion';
+import { loadConfig, saveConfig, isConfigured } from './services/config';
+import { useNotionPage } from './hooks/useNotionPage';
+import { SetupScreen } from './components/SetupScreen';
+import { TitleBar } from './components/TitleBar';
+import { BlockRenderer } from './components/BlockRenderer';
+import { BoardViewRenderer } from './components/BoardViewRenderer';
+import { listen } from '@tauri-apps/api/event';
+import styles from './App.module.css';
 
 export default function App() {
   const [config, setConfig] = useState<WidgetConfig>(loadConfig);
   const [showSetup, setShowSetup] = useState(!isConfigured(config));
+  const [widgetData, setWidgetData] = useState<{ text: string } | null>(null);
 
   useEffect(() => {
     if (isConfigured(config)) {
       getCurrentWindow().setAlwaysOnBottom(true);
     }
+
+    const unlisten = listen<{ text: string }>('widget-data', event => {
+      setWidgetData(event.payload);
+    });
+    return () => {
+      unlisten.then(fn => fn());
+    };
   }, []);
 
   const { page, loading, error, refresh, lastRefresh } = useNotionPage(config);
@@ -28,12 +37,12 @@ export default function App() {
     getCurrentWindow().setAlwaysOnBottom(true);
   }, []);
 
-  const databaseId = page && "rows" in page ? page.id : null;
-  const layout: BoardLayout = databaseId ? (config.layouts[databaseId] ?? "vertical") : "vertical";
+  const databaseId = page && 'rows' in page ? page.id : null;
+  const layout: BoardLayout = databaseId ? (config.layouts[databaseId] ?? 'vertical') : 'vertical';
 
   const handleToggleLayout = useCallback(() => {
     if (!databaseId) return;
-    const next: BoardLayout = layout === "vertical" ? "horizontal" : "vertical";
+    const next: BoardLayout = layout === 'vertical' ? 'horizontal' : 'vertical';
     const newConfig = { ...config, layouts: { ...config.layouts, [databaseId]: next } };
     saveConfig(newConfig);
     setConfig(newConfig);
@@ -46,7 +55,7 @@ export default function App() {
   return (
     <div className={styles.widget}>
       <TitleBar
-        title={page?.title ?? "Loading..."}
+        title={page?.title ?? 'Loading...'}
         icon={page?.icon}
         loading={loading}
         lastRefresh={lastRefresh}
@@ -57,10 +66,14 @@ export default function App() {
       />
 
       <div className={styles.content}>
+        {widgetData && <div>{widgetData.text}</div>}
+
         {error && (
           <div className={styles.error}>
             <span>⚠ {error}</span>
-            <button onClick={refresh} className={styles.retryBtn}>Retry</button>
+            <button onClick={refresh} className={styles.retryBtn}>
+              Retry
+            </button>
           </div>
         )}
 
@@ -71,15 +84,15 @@ export default function App() {
           </div>
         )}
 
-        {page && "blocks" in page && (
+        {page && 'blocks' in page && (
           <div className="animate-in">
-            {page.blocks.map((block) => (
+            {page.blocks.map(block => (
               <BlockRenderer key={block.id} block={block} />
             ))}
           </div>
         )}
 
-        {page && "rows" in page && (
+        {page && 'rows' in page && (
           <BoardViewRenderer
             database={page as NotionDatabase}
             layout={layout}
