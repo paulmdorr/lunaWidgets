@@ -1,0 +1,15 @@
+{
+  "identifier": "template",
+  "description": "Capabilities for template windows",
+  "windows": ["template"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-always-on-bottom",
+    "core:window:allow-set-min-size",
+    "http:default",
+    {
+      "identifier": "http:allow-fetch",
+      "allow": [{ "url": "https://api.notion.com/**" }]
+    }
+  ]
+}
