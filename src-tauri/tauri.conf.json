@@ -9,6 +9,11 @@
     "beforeDevCommand": "bun run dev",
     "beforeBuildCommand": "bun run build"
   },
+  "bundle": {
+    "resources": {
+      "../widgets": "widgets"
+    }
+  },
   "app": {
     "withGlobalTauri": true,
     "windows": [],

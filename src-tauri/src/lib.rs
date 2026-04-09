@@ -61,6 +61,20 @@ fn start_dragging(window: tauri::WebviewWindow) {
     window.start_dragging().ok();
 }
 
+fn copy_dir_all(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result<()> {
+    fs::create_dir_all(dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let dst_path = dst.join(entry.file_name());
+        if entry.path().is_dir() {
+            copy_dir_all(&entry.path(), &dst_path)?;
+        } else {
+            fs::copy(entry.path(), dst_path)?;
+        }
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -164,6 +178,12 @@ pub fn run() {
             "#;
 
             let base_dir = app.path().app_data_dir().unwrap();
+            let widgets_dir = base_dir.join("widgets");
+
+            if !widgets_dir.exists() {
+                let resource_widgets = app.path().resource_dir().unwrap().join("widgets");
+                copy_dir_all(&resource_widgets, &widgets_dir).ok();
+            }
 
             if let Ok(entries) = fs::read_dir(base_dir.join("widgets/")) {
                 for entry in entries {
