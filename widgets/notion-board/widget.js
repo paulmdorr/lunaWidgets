@@ -1,6 +1,19 @@
 const NOTION_API = 'https://api.notion.com/v1';
 const NOTION_VERSION = '2022-06-28';
 
+const STATUS_COLORS = {
+  gray: '#9b9b9b',
+  brown: '#c07a5a',
+  orange: '#d9730d',
+  yellow: '#cb912f',
+  green: '#448361',
+  blue: '#337ea9',
+  purple: '#9065b0',
+  pink: '#c14c8a',
+  red: '#d44c47',
+  default: '#9b9b9b',
+};
+
 function notionHeaders(token) {
   return {
     Authorization: `Bearer ${token}`,
@@ -104,9 +117,94 @@ async function updateRowStatus(token, rowId, statusPropertyName, statusPropertyT
   if (!res.ok) throw new Error(`Notion API error: ${res.status}`);
 }
 
+function processState(data) {
+  const isHorizontal = window.__config.layout === 'horizontal';
+  const ordered = data.statusGroups.map(g => g.name);
+  const ungrouped = data.rows.filter(r => !r.status || !ordered.includes(r.status));
+
+  const groups = ordered.map(name => {
+    const g = data.statusGroups.find(sg => sg.name === name);
+    const rows = data.rows.filter(r => r.status === name);
+    return {
+      name,
+      isHorizontal,
+      colorHex: STATUS_COLORS[g?.color ?? 'default'] ?? STATUS_COLORS.default,
+      count: rows.length,
+      rows,
+    };
+  });
+
+  if (ungrouped.length > 0) {
+    groups.push({
+      name: 'Other',
+      isHorizontal,
+      colorHex: STATUS_COLORS.default,
+      count: ungrouped.length,
+      rows: ungrouped,
+    });
+  }
+
+  return { groups, isHorizontal };
+}
+
+let isDragging = false;
+let pendingState = null;
+
+function attachEventListeners() {
+  document.querySelectorAll('.row').forEach(rowEl => {
+    rowEl.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('rowId', rowEl.dataset.id);
+      e.dataTransfer.setData('sourceStatus', rowEl.dataset.status);
+      isDragging = true;
+      window.__isDragging = true;
+      document.querySelectorAll('.drop-overlay').forEach(o => {
+        if (!o.parentElement.contains(rowEl)) o.classList.add('active');
+      });
+    });
+    rowEl.addEventListener('dragend', () => {
+      isDragging = false;
+      window.__isDragging = false;
+      document.querySelectorAll('.drop-overlay').forEach(o => o.classList.remove('active'));
+      if (pendingState) {
+        document.getElementById('app').innerHTML = Mustache.render(window.__widgetTemplate, pendingState);
+        attachEventListeners();
+        pendingState = null;
+      }
+    });
+  });
+
+  document.querySelectorAll('.drop-overlay').forEach(overlay => {
+    const groupName = overlay.dataset.group;
+    overlay.addEventListener('dragover', e => e.preventDefault());
+    overlay.addEventListener('dragenter', () => overlay.classList.add('hover'));
+    overlay.addEventListener('dragleave', () => overlay.classList.remove('hover'));
+    overlay.addEventListener('drop', e => {
+      e.preventDefault();
+      overlay.classList.remove('hover');
+      const rowId = e.dataTransfer.getData('rowId');
+      const sourceStatus = e.dataTransfer.getData('sourceStatus');
+      if (!rowId || sourceStatus === groupName) return;
+
+      const draggedEl = document.querySelector(`[data-id="${rowId}"]`);
+      if (draggedEl) {
+        draggedEl.dataset.status = groupName;
+        overlay.parentElement.insertBefore(draggedEl, overlay);
+      }
+
+      widget.action('moveItem', { rowId, targetStatus: groupName, sourceStatus });
+    });
+  });
+}
+
+widget.render((state) => {
+  if (!state.groups) return;
+  if (isDragging) { pendingState = state; return; }
+  document.getElementById('app').innerHTML = Mustache.render(window.__widgetTemplate, state);
+  attachEventListeners();
+});
+
 const { token, pageId } = window.__config;
 let state = null;
-
 let isUpdating = false;
 let lastMoveTime = 0;
 const MOVE_COOLDOWN = 15000;
@@ -115,18 +213,13 @@ widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
   isUpdating = true;
   lastMoveTime = Date.now();
   state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: targetStatus } : r));
+  widget.setState(processState(state));
 
   try {
-    await updateRowStatus(
-      token,
-      rowId,
-      state.statusPropertyName,
-      state.statusPropertyType,
-      targetStatus
-    );
+    await updateRowStatus(token, rowId, state.statusPropertyName, state.statusPropertyType, targetStatus);
   } catch (e) {
     state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: sourceStatus } : r));
-    widget.setData(state);
+    widget.setState(processState(state));
   } finally {
     isUpdating = false;
   }
@@ -137,7 +230,7 @@ widget.onRefresh(async () => {
   if (Date.now() - lastMoveTime < MOVE_COOLDOWN) return;
   try {
     state = await fetchDatabase(token, pageId);
-    widget.setData(state);
+    widget.setState(processState(state));
   } catch (e) {
     console.error('Failed to fetch Notion data:', e);
   }

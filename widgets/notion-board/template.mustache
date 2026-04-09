@@ -1,0 +1,15 @@
+<div class="container{{#isHorizontal}} horizontal{{/isHorizontal}}">
+  {{#groups}}
+  <div class="group{{#isHorizontal}} horizontal{{/isHorizontal}}" data-group="{{name}}">
+    <div class="group-header">
+      <span class="dot" style="background: {{colorHex}}"></span>
+      <span class="group-name">{{name}}</span>
+      <span class="count">{{count}}</span>
+    </div>
+    {{#rows}}
+    <div class="row" data-id="{{id}}" data-status="{{status}}" draggable="true">{{title}}</div>
+    {{/rows}}
+    <div class="drop-overlay" data-group="{{name}}"></div>
+  </div>
+  {{/groups}}
+</div>

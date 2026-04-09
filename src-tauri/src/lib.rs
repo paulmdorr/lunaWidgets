@@ -5,6 +5,8 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}
 use tauri::Manager;
 use tauri_plugin_http::reqwest;
 
+const MUSTACHE_JS: &str = include_str!("../mustache.min.js");
+
 #[derive(serde::Deserialize)]
 struct WidgetManifest {
     name: String,
@@ -68,12 +70,28 @@ pub fn run() {
         .register_uri_scheme_protocol("widget", |app, request| {
             let base_dir = app.app_handle().path().app_data_dir().unwrap();
             let path = request.uri().path().to_string();
+
+            // Auto-generate the HTML shell — no template.html needed on disk
+            if path.ends_with("/template.html") {
+                let html = concat!(
+                    "<!doctype html><html><head>",
+                    "<meta charset=\"UTF-8\"/>",
+                    "<link rel=\"stylesheet\" href=\"style.css\"/>",
+                    "</head><body><div id=\"app\"></div></body></html>"
+                );
+                return tauri::http::Response::builder()
+                    .header("Content-Type", "text/html")
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(html.as_bytes().to_vec())
+                    .unwrap();
+            }
+
             let file_path = base_dir.join(&path[1..]);
 
-            let content_type = if path.ends_with(".html") {
-                "text/html"
-            } else if path.ends_with(".js") {
+            let content_type = if path.ends_with(".js") {
                 "application/javascript"
+            } else if path.ends_with(".css") {
+                "text/css"
             } else {
                 "text/plain"
             };
@@ -92,17 +110,38 @@ pub fn run() {
         })
         .setup(|app| {
             let widget_api = r#"
-                window.__dataHandler = null;
                 window.__actionHandlers = {};
+                window.__state = {};
+                window.__renderFn = null;
                 window.widget = {
-                    setData: (data) => { if (window.__dataHandler) window.__dataHandler(data); },
-                    onData: (fn) => { window.__dataHandler = fn; },
                     onRefresh: (fn) => { fn(); setInterval(fn, 5000); },
                     action: (name, payload) => {
                         const handler = window.__actionHandlers[name];
                         if (handler) handler(payload);
                     },
                     onAction: (name, fn) => { window.__actionHandlers[name] = fn; },
+                    useState: (initial) => { window.__state = {...initial}; return window.__state; },
+                    setState: (partial) => {
+                        window.__state = {...window.__state, ...partial};
+                        if (window.__renderFn && document.readyState !== 'loading') {
+                            window.__renderFn(window.__state);
+                        }
+                    },
+                    render: (fnOrTemplate) => {
+                        const tmpl = fnOrTemplate === undefined ? window.__widgetTemplate : fnOrTemplate;
+                        if (typeof tmpl === 'string') {
+                            window.__renderFn = (s) => {
+                                document.getElementById('app').innerHTML = Mustache.render(tmpl, s);
+                            };
+                        } else {
+                            window.__renderFn = tmpl;
+                        }
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', () => window.__renderFn(window.__state));
+                        } else {
+                            window.__renderFn(window.__state);
+                        }
+                    },
                     fetch: async (url, options = {}) => {
                         const result = await window.__TAURI__.core.invoke('widget_fetch', {
                             request: {
@@ -162,8 +201,16 @@ pub fn run() {
                         )
                         .unwrap_or("{}".to_string());
 
-                        let init_script =
-                            format!("{widget_api}window.__config = {config_json};\n{widget_js}");
+                        let widget_template = fs::read_to_string(
+                            base_dir.join(format!("widgets/{widget_dir}/template.mustache")),
+                        )
+                        .unwrap_or_default();
+                        let template_json = serde_json::to_string(&widget_template)
+                            .unwrap_or_else(|_| "\"\"".to_string());
+
+                        let init_script = format!(
+                            "{MUSTACHE_JS}\n{widget_api}window.__widgetTemplate = {template_json};\nwindow.__config = {config_json};\n{widget_js}"
+                        );
 
                         let mut builder = tauri::WebviewWindowBuilder::new(
                             app,
