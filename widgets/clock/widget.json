@@ -1,0 +1,10 @@
+{
+  "id": "clock",
+  "name": "Clock",
+  "version": "1.0.0",
+  "width": 200,
+  "height": 200,
+  "resizable": false,
+  "transparent": true,
+  "decorations": false
+}

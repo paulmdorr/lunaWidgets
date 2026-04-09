@@ -78,6 +78,7 @@ pub fn run() {
             match fs::read(&file_path) {
                 Ok(bytes) => tauri::http::Response::builder()
                     .header("Content-Type", content_type)
+                    .header("Access-Control-Allow-Origin", "*")
                     .body(bytes)
                     .unwrap(),
                 Err(_) => tauri::http::Response::builder()
@@ -174,7 +175,8 @@ pub fn run() {
                         .resizable(manifest.resizable)
                         .transparent(manifest.transparent)
                         .decorations(manifest.decorations)
-                        .visible(true);
+                        .visible(true)
+                        .shadow(false);
 
                         if let Some(w) = manifest.width {
                             if let Some(h) = manifest.height {
