@@ -1,6 +1,10 @@
-![Logo of Luna Widgets](/src-tauri/icons/icon.png)
+<div align="center">
+
+![Logo of Luna Widgets](/src-tauri/icons/Square310x310Logo.png)
 
 # Luna Widgets
+
+</div>
 
 A lightweight desktop widget platform built with Tauri 2. Widgets are plain HTML, CSS, and JavaScript — no framework, no build step, no boilerplate. Drop a folder into the app's data directory and it appears on your desktop — always-on-bottom, transparent, frameless.
 
@@ -197,7 +201,10 @@ Values from `config.json` are available as `window.__config`:
 
 ```json
 // config.json
-{ "apiKey": "abc123", "refreshRate": 10000 }
+{
+  "apiKey": "abc123",
+  "refreshRate": 10000
+}
 ```
 
 ```js
@@ -210,7 +217,13 @@ const { apiKey } = window.__config;
 **widget.json**
 
 ```json
-{ "name": "Clock", "width": 200, "height": 80, "transparent": true, "decorations": false }
+{
+  "name": "Clock",
+  "width": 200,
+  "height": 80,
+  "transparent": true,
+  "decorations": false
+}
 ```
 
 **template.mustache**
