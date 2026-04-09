@@ -249,7 +249,7 @@ pub fn run() {
                             window.reload().ok();
                         }
                     }
-                    "quit" => std::process::exit(0),
+                    "quit" => app.exit(0),
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
@@ -268,11 +268,6 @@ pub fn run() {
 
             Ok(())
         })
-        .build(tauri::generate_context!())
-        .expect("error while running tauri application")
-        .run(|_app, event| {
-            if let tauri::RunEvent::ExitRequested { api, .. } = event {
-                api.prevent_exit();
-            }
-        });
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
