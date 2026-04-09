@@ -11,20 +11,7 @@
   },
   "app": {
     "withGlobalTauri": true,
-    "windows": [
-      {
-        "title": "Luna Widgets",
-        "width": 360,
-        "height": 500,
-        "decorations": false,
-        "transparent": true,
-        "alwaysOnTop": false,
-        "resizable": true,
-        "minWidth": 280,
-        "minHeight": 200,
-        "dragDropEnabled": false
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }

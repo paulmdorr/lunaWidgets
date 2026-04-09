@@ -1,13 +1,10 @@
+use std::fs::{self};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(
-            tauri_plugin_window_state::Builder::new()
-                .with_denylist(&["plugin-runner"])
-                .build(),
-        )
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .register_uri_scheme_protocol("widget", |app, request| {
             let base_dir = app.app_handle().path().app_data_dir().unwrap();
@@ -34,14 +31,6 @@ pub fn run() {
             }
         })
         .setup(|app| {
-            let window = app.get_webview_window("main").unwrap();
-            window.show().unwrap();
-
-            let base_dir = app.path().app_data_dir().unwrap();
-            let widget_js =
-                std::fs::read_to_string(base_dir.join("widgets/notion-board/widget.js"))
-                    .unwrap_or_default();
-
             let widget_api = r#"
                 window.__dataHandler = null;
                 window.__actionHandlers = {};
@@ -56,22 +45,42 @@ pub fn run() {
                     onAction: (name, fn) => { window.__actionHandlers[name] = fn; }
                 };
             "#;
+            let base_dir = app.path().app_data_dir().unwrap();
 
-            let init_script = format!("{widget_api}{widget_js}");
+            if let Ok(entries) = fs::read_dir(base_dir.join("widgets/")) {
+                for entry in entries {
+                    if let Ok(entry) = entry {
+                        let path = entry.path();
 
-            tauri::WebviewWindowBuilder::new(
-                app,
-                "widget-1",
-                tauri::WebviewUrl::CustomProtocol(
-                    "widget://localhost/widgets/notion-board/template.html"
-                        .parse()
-                        .unwrap(),
-                ),
-            )
-            .initialization_script(init_script)
-            .disable_drag_drop_handler()
-            .visible(true)
-            .build()?;
+                        if path.is_dir() {
+                            let filename = entry.file_name();
+                            let widget_dir = filename.to_str().unwrap();
+                            let widget_js = std::fs::read_to_string(
+                                base_dir.join(format!("widgets/{widget_dir}/widget.js")),
+                            )
+                            .unwrap_or_default();
+
+                            let init_script = format!("{widget_api}{widget_js}");
+
+                            tauri::WebviewWindowBuilder::new(
+                                app,
+                                widget_dir,
+                                tauri::WebviewUrl::CustomProtocol(
+                                    format!(
+                                        "widget://localhost/widgets/{widget_dir}/template.html"
+                                    )
+                                    .parse()
+                                    .unwrap(),
+                                ),
+                            )
+                            .initialization_script(init_script)
+                            .disable_drag_drop_handler()
+                            .visible(true)
+                            .build()?;
+                        }
+                    }
+                }
+            }
 
             Ok(())
         })
