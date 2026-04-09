@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicecrab/schemastore/master/src/schemas/json/tauri-conf-v2.json",
-  "productName": "luna-widgets",
+  "productName": "Luna Widgets",
   "version": "0.1.0",
   "identifier": "com.luna-widgets.app",
   "build": {

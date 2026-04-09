@@ -7,6 +7,7 @@ use tauri_plugin_http::reqwest;
 
 #[derive(serde::Deserialize)]
 struct WidgetManifest {
+    name: String,
     width: Option<u32>,
     height: Option<u32>,
     #[serde(default)]
@@ -143,6 +144,7 @@ pub fn run() {
                         .ok()
                         .and_then(|s| serde_json::from_str(&s).ok())
                         .unwrap_or(WidgetManifest {
+                            name: "Widget".to_string(),
                             width: None,
                             height: None,
                             resizable: true,
@@ -174,6 +176,7 @@ pub fn run() {
                         )
                         .initialization_script(&init_script)
                         .disable_drag_drop_handler()
+                        .title(manifest.name)
                         .resizable(manifest.resizable)
                         .transparent(manifest.transparent)
                         .decorations(manifest.decorations)
