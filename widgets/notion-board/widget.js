@@ -166,9 +166,9 @@ function attachEventListeners() {
       window.__isDragging = false;
       document.querySelectorAll('.drop-overlay').forEach(o => o.classList.remove('active'));
       if (pendingState) {
-        document.getElementById('app').innerHTML = Mustache.render(window.__widgetTemplate, pendingState);
-        attachEventListeners();
+        const s = pendingState;
         pendingState = null;
+        window.__renderFn(s);
       }
     });
   });
