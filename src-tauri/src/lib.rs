@@ -127,15 +127,14 @@ pub fn run() {
                             window.__renderFn(window.__state);
                         }
                     },
-                    render: (fnOrTemplate) => {
-                        const tmpl = fnOrTemplate === undefined ? window.__widgetTemplate : fnOrTemplate;
-                        if (typeof tmpl === 'string') {
-                            window.__renderFn = (s) => {
-                                document.getElementById('app').innerHTML = Mustache.render(tmpl, s);
-                            };
-                        } else {
-                            window.__renderFn = tmpl;
-                        }
+                    render: (callback) => {
+                        const tmpl = typeof callback === 'string' ? callback : window.__widgetTemplate;
+                        const after = typeof callback === 'function' ? callback : null;
+                        window.__renderFn = (s) => {
+                            if (!tmpl) return;
+                            document.getElementById('app').innerHTML = Mustache.render(tmpl, s);
+                            if (after) after();
+                        };
                         if (document.readyState === 'loading') {
                             document.addEventListener('DOMContentLoaded', () => window.__renderFn(window.__state));
                         } else {

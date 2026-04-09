@@ -196,10 +196,7 @@ function attachEventListeners() {
   });
 }
 
-widget.render((state) => {
-  if (!state.groups) return;
-  if (isDragging) { pendingState = state; return; }
-  document.getElementById('app').innerHTML = Mustache.render(window.__widgetTemplate, state);
+widget.render(() => {
   attachEventListeners();
 });
 
@@ -213,7 +210,13 @@ widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
   isUpdating = true;
   lastMoveTime = Date.now();
   state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: targetStatus } : r));
-  widget.setState(processState(state));
+
+  const processed = processState(state);
+  if (isDragging) {
+    pendingState = processed;
+  } else {
+    widget.setState(processed);
+  }
 
   try {
     await updateRowStatus(token, rowId, state.statusPropertyName, state.statusPropertyType, targetStatus);
