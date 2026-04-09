@@ -1,8 +1,8 @@
 [package]
 name = "luna-widgets"
 version = "0.1.0"
-description = "A desktop widget for Notion pages"
-authors = ["Pablo"]
+description = "A widget system for desktop using JS and mustache"
+authors = ["Pablo M Dorr"]
 edition = "2021"
 
 [lib]
