@@ -249,7 +249,7 @@ pub fn run() {
                             window.reload().ok();
                         }
                     }
-                    "quit" => app.exit(0),
+                    "quit" => std::process::exit(0),
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
