@@ -1,0 +1,27 @@
+@font-face {
+  font-family: 'Pacifico';
+  src: url('Pacifico-Regular.ttf');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  outline: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Pacifico', sans-serif;
+  color: white;
+  font-size: 56px;
+  font-weight: 300;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  cursor: default;
+}

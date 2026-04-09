@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicecrab/schemastore/master/src/schemas/json/tauri-conf-v2.json",
-  "productName": "notion-widget",
+  "productName": "Luna Widgets",
   "version": "0.1.0",
-  "identifier": "com.notion-widget.app",
+  "identifier": "com.luna-widgets.app",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -11,20 +11,7 @@
   },
   "app": {
     "withGlobalTauri": true,
-    "windows": [
-      {
-        "title": "Notion Widget",
-        "width": 360,
-        "height": 500,
-        "decorations": false,
-        "transparent": true,
-        "alwaysOnTop": false,
-        "resizable": true,
-        "minWidth": 280,
-        "minHeight": 200,
-        "dragDropEnabled": false
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }

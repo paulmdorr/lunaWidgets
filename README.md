@@ -1,122 +1,286 @@
-# Notion Widget
+<div align="center">
 
-A lightweight, cross-platform desktop widget that displays Notion page content. Built with Tauri 2, React, and TypeScript.
+![Logo of Luna Widgets](/src-tauri/icons/Square310x310Logo.png)
 
-![widget](https://img.shields.io/badge/platform-Windows%20|%20Linux-blue)
+# Luna Widgets
+
+</div>
+
+A lightweight desktop widget platform built with Tauri 2. Widgets are plain HTML, CSS, and JavaScript — no framework, no build step, no boilerplate. Drop a folder into the app's data directory and it appears on your desktop — always-on-bottom, transparent, frameless.
+
+![platform](https://img.shields.io/badge/platform-Windows%20|%20macOS%20|%20Linux-blue)
 
 ## Features
 
-- **Frameless, always-on-top window** — sits on your desktop like a native widget
-- **Renders Notion blocks** — headings, paragraphs, to-dos, lists, code, quotes, callouts, toggles, dividers
-- **Auto-refresh** — configurable polling interval
-- **Draggable** — drag from the title bar to reposition
-- **Resizable** — grab any edge to resize
-- **Tiny footprint** — Tauri uses the system webview, no bundled Chromium
+- **Widget platform** — load any number of self-contained widgets from a directory
+- **Mustache templates** — declarative HTML templates with automatic re-rendering
+- **Always-on-bottom** — widgets sit behind all other windows like wallpaper
+- **Ctrl+drag** — reposition any widget by holding Ctrl and dragging
+- **Position persistence** — window positions are saved across restarts
+- **System tray** — reload all widgets or quit from the tray icon
+- **Tiny footprint** — uses the system WebView, no bundled Chromium
 
 ## Prerequisites
 
 - [Bun](https://bun.sh/) (v1.0+)
 - [Rust](https://rustup.rs/) (stable)
-- Tauri v2 system dependencies:
-  - **Windows**: WebView2 (comes with Windows 11)
-  - **Linux**: `sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libayatana-appindicator3-dev librsvg2-dev`
+- **Windows**: WebView2 (included with Windows 11)
+- **macOS**: Xcode Command Line Tools — `xcode-select --install`
+- **Linux**: `sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libayatana-appindicator3-dev librsvg2-dev`
 
-## Setup
-
-### 1. Install dependencies
+## Running
 
 ```bash
 bun install
-```
-
-### 2. Create a Notion integration
-
-1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations)
-2. Click **"New integration"**
-3. Give it a name (e.g. "Desktop Widget")
-4. Select the workspace
-5. Copy the **Internal Integration Secret** (starts with `ntn_`) — you'll paste it into the widget's setup screen when you first run the app (step 4)
-
-### 3. Share a page with the integration
-
-1. Open the Notion page you want to display
-2. Click **"..."** → **"Connections"** → **"Connect to"** → select your integration
-3. Copy the page URL or ID — you'll paste it into the widget's setup screen alongside the token (step 4)
-
-### 4. Run in development
-
-```bash
 bun run tauri dev
 ```
 
-The widget will open — enter your token and page ID in the setup screen.
-
-### 5. Build for production
-
 ```bash
+# Production build
 bun run tauri build
 ```
 
-Binaries will be in `src-tauri/target/release/`.
+## Widgets Directory
+
+Widgets are loaded from the app's data directory:
+
+| Platform | Path                                                          |
+| -------- | ------------------------------------------------------------- |
+| Windows  | `%APPDATA%\com.luna-widgets.app\widgets\`                     |
+| macOS    | `~/Library/Application Support/com.luna-widgets.app/widgets/` |
+| Linux    | `~/.local/share/com.luna-widgets.app/widgets/`                |
+
+Each subdirectory is a widget. The app loads all of them on startup.
+
+## Creating a Widget
+
+A widget is a folder with the following files:
+
+```
+my-widget/
+├── widget.json         # required — manifest
+├── widget.js           # required — logic
+├── template.mustache   # recommended — HTML template
+├── style.css           # recommended — styles
+└── config.json         # optional — user config
+```
+
+### widget.json
+
+Controls the window appearance:
+
+```json
+{
+  "name": "My Widget",
+  "width": 300,
+  "height": 200,
+  "resizable": false,
+  "transparent": true,
+  "decorations": false
+}
+```
+
+| Field         | Type    | Default  | Description                       |
+| ------------- | ------- | -------- | --------------------------------- |
+| `name`        | string  | `Widget` | Window title                      |
+| `width`       | number  | —        | Initial width in pixels           |
+| `height`      | number  | —        | Initial height in pixels          |
+| `resizable`   | boolean | `true`   | Whether the window can be resized |
+| `transparent` | boolean | `false`  | Transparent window background     |
+| `decorations` | boolean | `true`   | Show native window title bar      |
+
+### template.mustache
+
+The HTML content rendered inside `#app`. Uses [Mustache](https://mustache.github.io/) syntax — variables from `widget.setState` are available directly:
+
+```mustache
+<div class="card">
+  <h1>{{title}}</h1>
+  <p>{{description}}</p>
+  {{#items}}
+  <div class="item">{{name}}</div>
+  {{/items}}
+</div>
+```
+
+### style.css
+
+Standard CSS. Loaded automatically — no `<link>` tag needed. Target `body` and `#app` for layout:
+
+```css
+body {
+  background: transparent;
+  font-family: sans-serif;
+  color: white;
+}
+
+#app {
+  height: 100%;
+}
+```
+
+### widget.js
+
+The logic layer. Has access to the `widget` API and `Mustache` globally.
+
+#### `widget.render(callback?)`
+
+Renders `template.mustache` into `#app` whenever state changes. Call once to set up:
+
+```js
+widget.render();
+```
+
+Pass a callback if you need to run code after each render (e.g. re-attaching event listeners):
+
+```js
+widget.render(() => {
+  attachEventListeners();
+});
+```
+
+#### `widget.useState(initial)`
+
+Sets the initial state. Returns the state object:
+
+```js
+widget.useState({ count: 0, label: 'hello' });
+widget.render();
+```
+
+#### `widget.setState(partial)`
+
+Merges partial state and triggers a re-render:
+
+```js
+widget.setState({ count: 1 }); // only updates count
+```
+
+#### `widget.onRefresh(fn)`
+
+Calls `fn` immediately and then every 5 seconds. Use this for polling external data:
+
+```js
+widget.onRefresh(async () => {
+  const res = await widget.fetch('https://api.example.com/data');
+  const data = await res.json();
+  widget.setState({ title: data.title });
+});
+```
+
+#### `widget.fetch(url, options?)`
+
+Proxies HTTP requests through the Rust backend, bypassing CORS restrictions:
+
+```js
+const res = await widget.fetch('https://api.example.com/data', {
+  method: 'POST',
+  headers: { Authorization: 'Bearer token' },
+  body: JSON.stringify({ key: 'value' }),
+});
+const data = await res.json();
+```
+
+#### `widget.action(name, payload)` / `widget.onAction(name, fn)`
+
+Communication channel for user interactions in the template back to widget.js:
+
+```js
+// widget.js
+widget.onAction('increment', ({ amount }) => {
+  widget.setState({ count: window.__state.count + amount });
+});
+
+// template.mustache (via inline onclick or attached listener)
+widget.action('increment', { amount: 1 });
+```
+
+#### `window.__config`
+
+Values from `config.json` are available as `window.__config`:
+
+```json
+// config.json
+{
+  "apiKey": "abc123",
+  "refreshRate": 10000
+}
+```
+
+```js
+// widget.js
+const { apiKey } = window.__config;
+```
+
+### Minimal example
+
+**widget.json**
+
+```json
+{
+  "name": "Clock",
+  "width": 200,
+  "height": 80,
+  "transparent": true,
+  "decorations": false
+}
+```
+
+**template.mustache**
+
+```mustache
+<span>{{time}}</span>
+```
+
+**style.css**
+
+```css
+body {
+  background: transparent;
+  color: white;
+  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+```
+
+**widget.js**
+
+```js
+widget.useState({ time: '' });
+widget.render();
+
+function tick() {
+  widget.setState({
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  });
+}
+
+tick();
+setInterval(tick, 1000);
+```
 
 ## Project Structure
 
 ```
 notion-widget/
-├── src/                        # React frontend
-│   ├── components/
-│   │   ├── BlockRenderer.tsx   # Renders Notion blocks
-│   │   ├── SetupScreen.tsx     # Config form
-│   │   └── TitleBar.tsx        # Draggable title bar
-│   ├── hooks/
-│   │   └── useNotionPage.ts    # Fetch + auto-refresh hook
-│   ├── services/
-│   │   ├── config.ts           # Config persistence
-│   │   └── notion.ts           # Notion API client
-│   ├── styles/
-│   │   └── global.css          # Theme + base styles
-│   ├── types/
-│   │   └── notion.ts           # TypeScript types
-│   ├── App.tsx                 # Root component
-│   └── main.tsx                # Entry point
-├── src-tauri/                  # Rust backend
+├── src/                    # React shell (for future config UI)
+│   ├── App.tsx
+│   └── styles/global.css
+├── src-tauri/
 │   ├── src/
-│   │   ├── lib.rs              # Tauri app setup
-│   │   └── main.rs             # Entry point
+│   │   ├── lib.rs          # Widget loader, widget API, tray
+│   │   └── main.rs
 │   ├── capabilities/
-│   │   └── default.json        # Permissions
+│   │   └── template.json   # Permissions for widget windows
+│   ├── mustache.min.js     # Bundled at compile time via include_str!
 │   ├── Cargo.toml
-│   └── tauri.conf.json         # Window config
+│   └── tauri.conf.json
+├── widgets/                # Built-in example widgets
+│   ├── clock/
+│   └── notion-board/
 ├── package.json
-├── tsconfig.json
 └── vite.config.ts
 ```
-
-## Next Steps / Ideas
-
-- [ ] **Toggle to-do items** — write back to Notion via the API
-- [ ] **Multiple pages** — tab between different pages
-- [ ] **Database view** — render Notion databases as tables or kanban
-- [ ] **System tray** — minimize to tray, show/hide with hotkey
-- [ ] **Themes** — light mode, custom accent colors
-- [ ] **Drag-and-drop positioning** — remember window position
-
-## Notes on CORS
-
-The Notion API doesn't support browser CORS. In development, `vite.config.ts` can be extended with a proxy, or you can use `tauri-plugin-http` (already configured) which bypasses CORS entirely since requests go through the Rust backend. The scaffold is set up to use `tauri-plugin-http` for production — you may need to switch from `fetch()` to `@tauri-apps/plugin-http`'s `fetch` in `notion.ts` if browser fetch is blocked.
-
-Quick fix for dev if needed — add to `vite.config.ts`:
-
-```ts
-server: {
-  proxy: {
-    '/notion-api': {
-      target: 'https://api.notion.com/v1',
-      changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/notion-api/, ''),
-    },
-  },
-},
-```
-
-Then change `NOTION_API` in `notion.ts` to `"/notion-api"` for dev mode.

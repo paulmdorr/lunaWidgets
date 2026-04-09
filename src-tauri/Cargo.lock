@@ -1882,6 +1882,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
+name = "luna-widgets"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-http",
+ "tauri-plugin-window-state",
+]
+
+[[package]]
 name = "mac"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2033,18 +2045,6 @@ name = "nodrop"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72ef4a56884ca558e5ddb05a1d1e7e1bfd9a68d9ed024c21704cc98872dae1bb"
-
-[[package]]
-name = "notion-widget"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-http",
- "tauri-plugin-window-state",
-]
 
 [[package]]
 name = "num-conv"

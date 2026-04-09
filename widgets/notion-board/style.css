@@ -1,15 +1,47 @@
+:root {
+  --bg-primary: rgba(18, 18, 22, 0.92);
+  --bg-secondary: rgba(28, 28, 35, 0.85);
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #e8e6e3;
+  --text-muted: #5c5856;
+  --success: #6bc77a;
+  --success-dim: #6bc77a23;
+  --radius-sm: 6px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100%;
+}
+
 .container {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 14px;
+  height: 100%;
 }
 
-.containerHorizontal {
-  display: flex;
+.container.horizontal {
   flex-direction: row;
   gap: 12px;
   align-items: stretch;
-  height: 100%;
 }
 
 .group {
@@ -17,20 +49,14 @@
   flex-direction: column;
   gap: 2px;
   position: relative;
-  -webkit-app-region: no-drag;
 }
 
-.groupHorizontal {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.group.horizontal {
   flex: 1;
   min-width: 0;
-  position: relative;
-  -webkit-app-region: no-drag;
 }
 
-.groupHeader {
+.group-header {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -44,7 +70,7 @@
   flex-shrink: 0;
 }
 
-.groupName {
+.group-name {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -66,8 +92,6 @@
   background: var(--bg-secondary);
   line-height: 1.4;
   cursor: grab;
-  user-select: none;
-  -webkit-app-region: no-drag;
 }
 
 .row:active {
@@ -75,18 +99,18 @@
   opacity: 0.5;
 }
 
-.dropOverlay {
+.drop-overlay {
   position: absolute;
   inset: 0;
   border-radius: var(--radius-sm);
   pointer-events: none;
 }
 
-.dropOverlayActive {
+.drop-overlay.active {
   pointer-events: auto;
 }
 
-.dropOverlayActiveHover {
+.drop-overlay.hover {
   background: var(--success-dim);
   border: 1px dashed var(--success);
 }

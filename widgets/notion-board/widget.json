@@ -1,0 +1,10 @@
+{
+  "id": "notion-board",
+  "name": "Notion Board",
+  "version": "1.0.0",
+  "width": 600,
+  "height": 500,
+  "resizable": true,
+  "transparent": true,
+  "decorations": false
+}
