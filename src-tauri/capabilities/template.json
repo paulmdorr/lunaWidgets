@@ -1,7 +1,7 @@
 {
   "identifier": "template",
   "description": "Capabilities for template windows",
-  "windows": ["template"],
+  "windows": ["*"],
   "permissions": [
     "core:default",
     "core:window:allow-set-always-on-bottom",

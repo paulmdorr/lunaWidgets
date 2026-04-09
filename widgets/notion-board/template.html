@@ -1,0 +1,239 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      :root {
+        --bg-primary: rgba(18, 18, 22, 0.92);
+        --bg-secondary: rgba(28, 28, 35, 0.85);
+        --border: rgba(255, 255, 255, 0.08);
+        --text-primary: #e8e6e3;
+        --text-muted: #5c5856;
+        --success: #6bc77a;
+        --success-dim: #6bc77a23;
+        --radius-sm: 6px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        font-size: 13px;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        user-select: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 14px;
+        height: 100%;
+      }
+
+      .container.horizontal {
+        flex-direction: row;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        position: relative;
+      }
+
+      .group.horizontal {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .group-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .group-name {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        flex: 1;
+      }
+
+      .count {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .row {
+        font-size: 13px;
+        color: var(--text-primary);
+        padding: 5px 8px;
+        border-radius: var(--radius-sm);
+        background: var(--bg-secondary);
+        line-height: 1.4;
+        cursor: grab;
+      }
+
+      .row:active {
+        cursor: grabbing;
+        opacity: 0.5;
+      }
+
+      .drop-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: var(--radius-sm);
+        pointer-events: none;
+      }
+
+      .drop-overlay.active {
+        pointer-events: auto;
+      }
+
+      .drop-overlay.hover {
+        background: var(--success-dim);
+        border: 1px dashed var(--success);
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const STATUS_COLORS = {
+        gray: '#9b9b9b',
+        brown: '#c07a5a',
+        orange: '#d9730d',
+        yellow: '#cb912f',
+        green: '#448361',
+        blue: '#337ea9',
+        purple: '#9065b0',
+        pink: '#c14c8a',
+        red: '#d44c47',
+        default: '#9b9b9b',
+      };
+
+      let isDragging = false;
+      let pendingData = null;
+
+      function render(data) {
+        const isHorizontal = window.__config.layout === 'horizontal';
+        const ordered = data.statusGroups.map(g => g.name);
+        const ungrouped = data.rows.filter(r => !r.status || !ordered.includes(r.status));
+
+        const groups = ordered.map(name => ({
+          name,
+          color: data.statusGroups.find(g => g.name === name)?.color ?? 'default',
+          rows: data.rows.filter(r => r.status === name),
+        }));
+        if (ungrouped.length > 0) groups.push({ name: 'Other', color: 'default', rows: ungrouped });
+
+        const container = document.createElement('div');
+        container.className = isHorizontal ? 'container horizontal' : 'container';
+
+        groups.forEach(group => {
+          const groupEl = document.createElement('div');
+          groupEl.className = isHorizontal ? 'group horizontal' : 'group';
+
+          const header = document.createElement('div');
+          header.className = 'group-header';
+          header.innerHTML = `
+            <span class="dot" style="background: ${STATUS_COLORS[group.color] ?? STATUS_COLORS.default}"></span>
+            <span class="group-name">${group.name}</span>
+            <span class="count">${group.rows.length}</span>
+          `;
+          groupEl.appendChild(header);
+
+          group.rows.forEach(row => {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'row';
+            rowEl.dataset.id = row.id;
+            rowEl.dataset.status = group.name;
+            rowEl.textContent = row.title;
+            rowEl.draggable = true;
+            rowEl.addEventListener('dragstart', e => {
+              e.dataTransfer.setData('rowId', row.id);
+              e.dataTransfer.setData('sourceStatus', rowEl.dataset.status);
+              isDragging = true;
+              window.__isDragging = true;
+              document.querySelectorAll('.drop-overlay').forEach(o => {
+                // only activate overlays in OTHER groups
+                if (!o.parentElement.contains(rowEl)) o.classList.add('active');
+              });
+            });
+            rowEl.addEventListener('dragend', () => {
+              isDragging = false;
+              window.__isDragging = false;
+              document.querySelectorAll('.drop-overlay').forEach(o => o.classList.remove('active'));
+              if (pendingData) {
+                render(pendingData);
+                pendingData = null;
+              }
+            });
+            groupEl.appendChild(rowEl);
+          });
+
+          const overlay = document.createElement('div');
+          overlay.className = 'drop-overlay';
+          overlay.addEventListener('dragover', e => e.preventDefault());
+          overlay.addEventListener('dragenter', () => overlay.classList.add('hover'));
+          overlay.addEventListener('dragleave', () => overlay.classList.remove('hover'));
+          overlay.addEventListener('drop', e => {
+            e.preventDefault();
+            overlay.classList.remove('hover');
+            const rowId = e.dataTransfer.getData('rowId');
+            const sourceStatus = e.dataTransfer.getData('sourceStatus');
+            if (!rowId || sourceStatus === group.name) return;
+
+            // Move card in DOM immediately without waiting for re-render
+            const draggedEl = document.querySelector(`[data-id="${rowId}"]`);
+            if (draggedEl) {
+              draggedEl.dataset.status = group.name;
+              groupEl.insertBefore(draggedEl, overlay);
+            }
+
+            widget.action('moveItem', { rowId, targetStatus: group.name, sourceStatus });
+          });
+          groupEl.appendChild(overlay);
+
+          container.appendChild(groupEl);
+        });
+
+        document.body.innerHTML = '';
+        document.body.appendChild(container);
+      }
+
+      widget.onData(data => {
+        if (isDragging) {
+          pendingData = data;
+          return;
+        }
+        render(data);
+      });
+    </script>
+  </body>
+</html>
