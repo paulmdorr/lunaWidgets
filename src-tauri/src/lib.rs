@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
+use tauri::menu::{MenuBuilder, MenuItemBuilder};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::Manager;
 use tauri_plugin_http::reqwest;
 
@@ -176,7 +178,8 @@ pub fn run() {
                         .transparent(manifest.transparent)
                         .decorations(manifest.decorations)
                         .visible(true)
-                        .shadow(false);
+                        .shadow(false)
+                        .skip_taskbar(true);
 
                         if let Some(w) = manifest.width {
                             if let Some(h) = manifest.height {
@@ -189,6 +192,39 @@ pub fn run() {
                     }
                 }
             }
+
+            let reload = MenuItemBuilder::new("Reload Widgets")
+                .id("reload")
+                .build(app)?;
+            let quit = MenuItemBuilder::new("Quit").id("quit").build(app)?;
+            let menu = MenuBuilder::new(app).items(&[&reload, &quit]).build()?;
+
+            TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .on_menu_event(|app, event| match event.id().as_ref() {
+                    "reload" => {
+                        for (_, window) in app.webview_windows() {
+                            window.reload().ok();
+                        }
+                    }
+                    "quit" => app.exit(0),
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        for (_, window) in app.webview_windows() {
+                            window.show().ok();
+                        }
+                    }
+                })
+                .build(app)?;
 
             Ok(())
         })
