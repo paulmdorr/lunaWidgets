@@ -1,0 +1,8 @@
+{
+  "name": "Process Monitor",
+  "width": 380,
+  "height": 500,
+  "resizable": true,
+  "transparent": true,
+  "decorations": false
+}

@@ -1,14 +1,14 @@
-use std::collections::HashMap;
 use std::fs;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::Manager;
-use tauri_plugin_http::reqwest;
+
+mod commands;
 
 const MUSTACHE_JS: &str = include_str!("imports/mustache.min.js");
 const WIDGET_API: &str = include_str!("imports/widget-api.js");
 
-// ── Structs ──────────────────────────────────────────────────────────────────
+// ── Structs ───────────────────────────────────────────────────────────────────
 
 #[derive(serde::Deserialize)]
 struct WidgetManifest {
@@ -23,53 +23,9 @@ struct WidgetManifest {
     decorations: bool,
 }
 
-#[derive(serde::Deserialize)]
-struct FetchRequest {
-    url: String,
-    method: Option<String>,
-    headers: Option<HashMap<String, String>>,
-    body: Option<String>,
-}
-
-#[derive(serde::Serialize)]
-struct FetchResponse {
-    status: u16,
-    body: String,
-}
-
-// ── Tauri commands ────────────────────────────────────────────────────────────
-
-#[tauri::command]
-async fn widget_fetch(request: FetchRequest) -> Result<FetchResponse, String> {
-    let client = reqwest::Client::new();
-    let method = request.method.unwrap_or("GET".to_string());
-    let mut req = client.request(
-        reqwest::Method::from_bytes(method.as_bytes()).map_err(|e| e.to_string())?,
-        &request.url,
-    );
-    if let Some(headers) = request.headers {
-        for (k, v) in headers {
-            req = req.header(&k, &v);
-        }
-    }
-    if let Some(body) = request.body {
-        req = req.body(body);
-    }
-    let res = req.send().await.map_err(|e| e.to_string())?;
-    let status = res.status().as_u16();
-    let body = res.text().await.map_err(|e| e.to_string())?;
-    Ok(FetchResponse { status, body })
-}
-
-#[tauri::command]
-fn start_dragging(window: tauri::WebviewWindow) {
-    window.start_dragging().ok();
-}
-
 // ── Protocol handler ──────────────────────────────────────────────────────────
 
 fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Response<Vec<u8>> {
-    // Auto-generate the HTML shell — no template.html needed on disk
     if path.ends_with("/template.html") {
         let html = concat!(
             "<!doctype html><html><head>",
@@ -112,8 +68,6 @@ fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Res
 // ── Widget loading ────────────────────────────────────────────────────────────
 
 fn build_init_script(widget_js: &str) -> String {
-    // widget.js is wrapped inside the async loader so it only runs
-    // after config.json and template.mustache have been fetched from disk
     format!(
         r#"{MUSTACHE_JS}
 {WIDGET_API}
@@ -218,7 +172,13 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_http::init())
-        .invoke_handler(tauri::generate_handler![widget_fetch, start_dragging])
+        .invoke_handler(tauri::generate_handler![
+            commands::http::widget_fetch,
+            commands::window::start_dragging,
+            commands::system::get_processes,
+            commands::system::get_system_stats,
+            commands::system::kill_process,
+        ])
         .register_uri_scheme_protocol("widget", |app, request| {
             let base_dir = app.app_handle().path().app_data_dir().unwrap();
             serve_widget_file(&base_dir, request.uri().path())
@@ -234,9 +194,7 @@ pub fn run() {
 
             load_widgets(app.handle());
 
-            let reload = MenuItemBuilder::new("Reload Widgets")
-                .id("reload")
-                .build(app)?;
+            let reload = MenuItemBuilder::new("Reload Widgets").id("reload").build(app)?;
             let quit = MenuItemBuilder::new("Quit").id("quit").build(app)?;
             let menu = MenuBuilder::new(app).items(&[&reload, &quit]).build()?;
 

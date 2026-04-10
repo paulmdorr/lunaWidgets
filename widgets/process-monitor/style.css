@@ -1,0 +1,240 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  color: #e8e6e3;
+  background: rgba(18, 18, 22, 0.92);
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 12px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5c5856;
+}
+
+.value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2a869;
+}
+
+.total {
+  font-size: 11px;
+  font-weight: 400;
+  color: #5c5856;
+}
+
+.col-headers {
+  display: grid;
+  grid-template-columns: 1fr 52px 64px 24px;
+  gap: 6px;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.col-headers span {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5c5856;
+}
+
+.col-cpu, .col-mem {
+  text-align: right;
+}
+
+.sort-btn {
+  cursor: pointer;
+}
+
+.sort-btn:hover {
+  color: #9a9590;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #5c5856;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.processes {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+}
+
+.processes.empty {
+  display: none;
+}
+
+.processes::-webkit-scrollbar {
+  width: 4px;
+}
+
+.processes::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.processes::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.process {
+  display: grid;
+  grid-template-columns: 1fr 52px 64px 24px;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 5px;
+}
+
+.process:hover {
+  background: rgba(28, 28, 35, 0.9);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #e8e6e3;
+}
+
+.cpu {
+  text-align: right;
+  color: #e2a869;
+  font-variant-numeric: tabular-nums;
+}
+
+.mem {
+  text-align: right;
+  color: #9a9590;
+  font-variant-numeric: tabular-nums;
+}
+
+.kill {
+  background: none;
+  border: none;
+  color: #5c5856;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kill:hover {
+  color: #e06c6c;
+  background: rgba(224, 108, 108, 0.15);
+}
+
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.confirm-overlay.visible {
+  display: flex;
+}
+
+.confirm-dialog {
+  background: rgba(28, 28, 35, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 200px;
+}
+
+.confirm-dialog p {
+  color: #e8e6e3;
+  font-size: 13px;
+}
+
+.confirm-dialog strong {
+  color: #e2a869;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.confirm-actions button {
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#confirm-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  color: #9a9590;
+}
+
+#confirm-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e8e6e3;
+}
+
+#confirm-kill {
+  background: rgba(224, 108, 108, 0.2);
+  color: #e06c6c;
+}
+
+#confirm-kill:hover {
+  background: rgba(224, 108, 108, 0.35);
+}

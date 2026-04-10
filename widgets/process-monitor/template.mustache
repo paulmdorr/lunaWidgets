@@ -1,0 +1,50 @@
+<div class="header">
+  <div class="stat">
+    <span class="label">CPU</span>
+    <span class="value">{{cpu_usage}}%</span>
+  </div>
+  <div class="stat">
+    <span class="label">RAM</span>
+    <span class="value">{{used_memory_mb}}MB <span class="total">/ {{total_memory_mb}}MB</span></span>
+  </div>
+</div>
+
+<div class="col-headers">
+  <span class="col-name sort-btn" data-col="name">Name {{sort_name}}</span>
+  <span class="col-cpu sort-btn" data-col="cpu">CPU {{sort_cpu}}</span>
+  <span class="col-mem sort-btn" data-col="memory">RAM {{sort_mem}}</span>
+  <span class="col-kill"></span>
+</div>
+
+<div class="section-label">Apps</div>
+<div class="processes" id="apps-list">
+  {{#apps}}
+  <div class="process">
+    <span class="name">{{name}}</span>
+    <span class="cpu">{{cpu}}%</span>
+    <span class="mem">{{memory_mb}}MB</span>
+    <button class="kill" data-pid="{{pid}}" data-name="{{name}}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+      </svg>
+    </button>
+  </div>
+  {{/apps}}
+</div>
+
+<div class="section-label">System</div>
+<div class="processes" id="system-list">
+  {{#processes}}
+  <div class="process">
+    <span class="name">{{name}}</span>
+    <span class="cpu">{{cpu}}%</span>
+    <span class="mem">{{memory_mb}}MB</span>
+    <button class="kill" data-pid="{{pid}}" data-name="{{name}}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+      </svg>
+    </button>
+  </div>
+  {{/processes}}
+</div>
+
