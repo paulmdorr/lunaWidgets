@@ -67,19 +67,21 @@ fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Res
 
 // Widget loading
 
-fn build_init_script(widget_js: &str) -> String {
+fn build_init_script() -> String {
     format!(
         r#"{MUSTACHE_JS}
 {WIDGET_API}
 (async () => {{
     const base = window.location.href.replace('template.html', '');
-    const [configRes, templateRes] = await Promise.all([
+    const [configRes, templateRes, widgetRes] = await Promise.all([
         fetch(base + 'config.json').catch(() => null),
         fetch(base + 'template.mustache').catch(() => null),
+        fetch(base + 'widget.js').catch(() => null),
     ]);
     window.__config = configRes?.ok ? await configRes.json() : {{}};
     window.__widgetTemplate = templateRes?.ok ? await templateRes.text() : '';
-    {widget_js}
+    const __js = widgetRes?.ok ? await widgetRes.text() : '';
+    if (__js) new Function(__js)();
 }})();
 "#
     )
@@ -111,11 +113,7 @@ fn load_widgets(app: &tauri::AppHandle) {
                         decorations: true,
                     });
 
-            let widget_js =
-                fs::read_to_string(base_dir.join(format!("widgets/{widget_dir}/widget.js")))
-                    .unwrap_or_default();
-
-            let init_script = build_init_script(&widget_js);
+            let init_script = build_init_script();
 
             let mut builder = tauri::WebviewWindowBuilder::new(
                 app,
