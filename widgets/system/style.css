@@ -1,0 +1,114 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  --main-fg-color: #b1b1b1;
+  --highlight-fg-color: #e8e6e3;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 12px;
+  color: var(--highlight-fg-color);
+  background: transparent;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card {
+  background: rgba(22, 22, 22, 0.966);
+  border: 1px solid rgba(133, 133, 133, 0.774);
+  border-radius: 10px;
+  padding: 9px 11px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  color: var(--main-fg-color);
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--main-fg-color);
+}
+
+.value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e8e6e3;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.fill.green {
+  background: #6db88a;
+}
+.fill.orange {
+  background: #e2a869;
+}
+.fill.red {
+  background: #e06c6c;
+}
+
+.speeds {
+  display: flex;
+  gap: 10px;
+}
+
+.speed-down {
+  font-size: 11px;
+  color: #6db88a;
+  font-variant-numeric: tabular-nums;
+}
+
+.speed-up {
+  font-size: 11px;
+  color: #e2a869;
+  font-variant-numeric: tabular-nums;
+}

@@ -8,7 +8,7 @@ mod commands;
 const MUSTACHE_JS: &str = include_str!("imports/mustache.min.js");
 const WIDGET_API: &str = include_str!("imports/widget-api.js");
 
-// ── Structs ───────────────────────────────────────────────────────────────────
+// Structs
 
 #[derive(serde::Deserialize)]
 struct WidgetManifest {
@@ -23,7 +23,7 @@ struct WidgetManifest {
     decorations: bool,
 }
 
-// ── Protocol handler ──────────────────────────────────────────────────────────
+// Protocol handler
 
 fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Response<Vec<u8>> {
     if path.ends_with("/template.html") {
@@ -65,7 +65,7 @@ fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Res
     }
 }
 
-// ── Widget loading ────────────────────────────────────────────────────────────
+// Widget loading
 
 fn build_init_script(widget_js: &str) -> String {
     format!(
@@ -149,7 +149,7 @@ fn load_widgets(app: &tauri::AppHandle) {
     }
 }
 
-// ── Utilities ─────────────────────────────────────────────────────────────────
+// Utilities
 
 fn copy_dir_all(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result<()> {
     fs::create_dir_all(dst)?;
@@ -165,19 +165,18 @@ fn copy_dir_all(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result
     Ok(())
 }
 
-// ── App entry point ───────────────────────────────────────────────────────────
+// App entry point
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(std::sync::Mutex::new(commands::system::SysState::new()))
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .invoke_handler(tauri::generate_handler![
             commands::http::widget_fetch,
             commands::window::start_dragging,
-            commands::system::get_processes,
             commands::system::get_system_stats,
-            commands::system::kill_process,
         ])
         .register_uri_scheme_protocol("widget", |app, request| {
             let base_dir = app.app_handle().path().app_data_dir().unwrap();
@@ -194,7 +193,9 @@ pub fn run() {
 
             load_widgets(app.handle());
 
-            let reload = MenuItemBuilder::new("Reload Widgets").id("reload").build(app)?;
+            let reload = MenuItemBuilder::new("Reload Widgets")
+                .id("reload")
+                .build(app)?;
             let quit = MenuItemBuilder::new("Quit").id("quit").build(app)?;
             let menu = MenuBuilder::new(app).items(&[&reload, &quit]).build()?;
 

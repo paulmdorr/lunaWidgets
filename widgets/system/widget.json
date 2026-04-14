@@ -1,0 +1,8 @@
+{
+  "name": "System",
+  "width": 240,
+  "height": 260,
+  "transparent": true,
+  "decorations": false,
+  "resizable": true
+}
