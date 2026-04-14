@@ -1,9 +1,12 @@
-widget.useState({ time: '' });
+widget.useState({ time: '', day: '', date: '' });
 widget.render();
 
 function tick() {
+  const now = new Date();
   widget.setState({
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    day: now.toLocaleDateString([], { weekday: 'long' }),
+    date: now.toLocaleDateString([], { day: 'numeric', month: 'long' }),
   });
 }
 

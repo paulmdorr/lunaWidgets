@@ -7,21 +7,43 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  --main-fg-color: #eeeeee;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow: hidden;
   background: transparent;
-  outline: none;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Pacifico', sans-serif;
-  color: white;
-  font-size: 56px;
-  font-weight: 300;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
   cursor: default;
+  user-select: none;
+  width: 100%;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  line-height: 52px;
+}
+
+.text {
+  color: var(--main-fg-color);
+  font-family: Pacifico, sans-serif;
+  padding: 5px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.day {
+  font-size: 52px;
+  text-align: left;
+}
+
+.date {
+  font-size: 52px;
+  text-align: right;
+}
+
+.time {
+  font-size: 72px;
+  text-align: center;
 }
