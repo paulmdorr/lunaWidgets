@@ -130,9 +130,15 @@ fn load_widgets(app: &tauri::AppHandle) {
             .resizable(manifest.resizable)
             .transparent(manifest.transparent)
             .decorations(manifest.decorations)
-            .visible(true)
             .shadow(false)
             .skip_taskbar(true);
+
+            // On Linux/Wayland, init_layer_shell must be called before the window
+            // is realized. We build with visible(false), init the shell, then show.
+            #[cfg(target_os = "linux")]
+            { builder = builder.visible(false); }
+            #[cfg(not(target_os = "linux"))]
+            { builder = builder.visible(true); }
 
             if let Some(w) = manifest.width {
                 if let Some(h) = manifest.height {
@@ -141,6 +147,21 @@ fn load_widgets(app: &tauri::AppHandle) {
             }
 
             if let Ok(window) = builder.build() {
+                #[cfg(target_os = "linux")]
+                {
+                    use gtk_layer_shell::LayerShell;
+                    if let Ok(gtk_win) = window.gtk_window() {
+                        if gtk_layer_shell::is_supported() {
+                            gtk_win.init_layer_shell();
+                            gtk_win.set_layer(gtk_layer_shell::Layer::Bottom);
+                            gtk_win.set_namespace("luna-widgets");
+                        } else {
+                            window.set_always_on_bottom(true).ok();
+                        }
+                    }
+                    window.show().ok();
+                }
+                #[cfg(not(target_os = "linux"))]
                 window.set_always_on_bottom(true).ok();
             }
         }

@@ -22,3 +22,6 @@ sysinfo = "0.33"
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-window-state = "2"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk-layer-shell = "0.8"
+
