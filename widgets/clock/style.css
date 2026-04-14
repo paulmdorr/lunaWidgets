@@ -47,3 +47,8 @@ body {
   font-size: 72px;
   text-align: center;
 }
+
+.period {
+  font-size: 40px;
+  text-transform: lowercase;
+}
