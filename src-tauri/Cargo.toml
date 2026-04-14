@@ -23,5 +23,5 @@ sysinfo = "0.33"
 tauri-plugin-window-state = "2"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-gtk-layer-shell = "0.8"
+gtk-layer-shell = { version = "0.8", features = ["v0_5"] }
 
