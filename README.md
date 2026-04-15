@@ -6,19 +6,52 @@
 
 </div>
 
-A lightweight desktop widget platform built with Tauri 2. Widgets are plain HTML, CSS, and JavaScript — no framework, no build step, no boilerplate. Drop a folder into the app's data directory and it appears on your desktop — always-on-bottom, transparent, frameless.
+A lightweight desktop widget platform built with Tauri 2. Widgets are Mustache templates, CSS, and JavaScript. No framework, no build step, no boilerplate. Drop a folder into the app's widgets directory, reload the widgets, and the new one appears on your desktop.
 
 ![platform](https://img.shields.io/badge/platform-Windows%20|%20macOS%20|%20Linux-blue)
 
 ## Features
 
+- **Platforms** — Windows, macOS, and Linux ([partial support](#linux-support))
 - **Widget platform** — load any number of self-contained widgets from a directory
 - **Mustache templates** — declarative HTML templates with automatic re-rendering
 - **Always-on-bottom** — widgets sit behind all other windows like wallpaper
 - **Ctrl+drag** — reposition any widget by holding Ctrl and dragging
-- **Position persistence** — window positions are saved across restarts
+- **Position persistence** — window positions and sizes are saved across restarts
+- **Live reload** — reload all widgets from the tray without restarting the app
+- **System stats** — built-in API to read CPU, RAM, disk, and network usage
 - **System tray** — reload all widgets or quit from the tray icon
 - **Tiny footprint** — uses the system WebView, no bundled Chromium
+
+## Linux Support
+
+Linux is partially supported. The app runs and widgets work, but there are known limitations depending on the display server.
+
+Tested on GNOME Wayland (Ubuntu 24.04):
+
+- Widgets load and run ✓
+- Size saving ✓
+- Always-on-bottom ✗ — GNOME does not support the wlr-layer-shell protocol
+- Position saving ✗ — Wayland does not allow apps to set arbitrary window positions by design
+
+X11 and wlroots-based compositors (Sway, Hyprland) should work better based on how the code is structured, but have not been tested yet.
+
+Full Linux support is planned after the first release.
+
+### Linux Build Dependencies
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
+  libssl-dev libayatana-appindicator3-dev librsvg2-dev libgtk-layer-shell-dev
+```
+
+## (Possible) Future Features
+
+- Configurable refresh rate per widget (currently fixed at 5 seconds for `onRefresh`)
+- First-run setup and onboarding
+- Config UI — manage and configure widgets from a settings window
+- Widget permissions — restrict which APIs each widget can access
+- Full Linux support — always-on-bottom and position saving on GNOME Wayland
 
 ## Prerequisites
 
@@ -26,7 +59,7 @@ A lightweight desktop widget platform built with Tauri 2. Widgets are plain HTML
 - [Rust](https://rustup.rs/) (stable)
 - **Windows**: WebView2 (included with Windows 11)
 - **macOS**: Xcode Command Line Tools — `xcode-select --install`
-- **Linux**: `sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libayatana-appindicator3-dev librsvg2-dev`
+- **Linux**: see [Linux Build Dependencies](#linux-build-dependencies)
 
 ## Running
 
@@ -280,6 +313,7 @@ notion-widget/
 │   └── tauri.conf.json
 ├── widgets/                # Built-in example widgets
 │   ├── clock/
+│   ├── system/
 │   └── notion-board/
 ├── package.json
 └── vite.config.ts
