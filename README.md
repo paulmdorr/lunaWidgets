@@ -122,6 +122,8 @@ Controls the window appearance:
 | `transparent` | boolean | `false`  | Transparent window background     |
 | `decorations` | boolean | `true`   | Show native window title bar      |
 
+> Changes to `widget.json` require a full app restart to take effect. All other files (`widget.js`, `template.mustache`, `style.css`, `config.json`) are picked up by **Reload Widgets** in the tray.
+
 ### template.mustache
 
 The HTML content rendered inside `#app`. Uses [Mustache](https://mustache.github.io/) syntax — variables from `widget.setState` are available directly:
