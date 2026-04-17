@@ -1,4 +1,5 @@
-use std::fs;
+use std::fs::{self, File};
+use std::io::prelude::*;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::Manager;
@@ -31,6 +32,7 @@ fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Res
             "<!doctype html><html><head>",
             "<meta charset=\"UTF-8\"/>",
             "<link rel=\"stylesheet\" href=\"style.css\"/>",
+            "<link rel=\"icon\" href=\"data:,\">",
             "</head><body><div id=\"app\"></div></body></html>"
         );
         return tauri::http::Response::builder()
@@ -113,6 +115,15 @@ fn load_widgets(app: &tauri::AppHandle) {
                         decorations: true,
                     });
 
+            if let Err(_error) =
+                fs::read_to_string(base_dir.join(format!("widgets/{widget_dir}/config.json")))
+            {
+                let mut file =
+                    File::create(base_dir.join(format!("widgets/{widget_dir}/config.json")))
+                        .unwrap();
+                file.write_all(b"{}").ok();
+            }
+
             let init_script = build_init_script();
 
             let mut builder = tauri::WebviewWindowBuilder::new(
@@ -136,9 +147,13 @@ fn load_widgets(app: &tauri::AppHandle) {
             // On Linux/Wayland, init_layer_shell must be called before the window
             // is realized. We build with visible(false), init the shell, then show.
             #[cfg(target_os = "linux")]
-            { builder = builder.visible(false); }
+            {
+                builder = builder.visible(false);
+            }
             #[cfg(not(target_os = "linux"))]
-            { builder = builder.visible(true); }
+            {
+                builder = builder.visible(true);
+            }
 
             if let Some(w) = manifest.width {
                 if let Some(h) = manifest.height {
