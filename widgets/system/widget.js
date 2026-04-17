@@ -27,9 +27,10 @@ widget.onRefresh(async () => {
   const stats = await window.__TAURI__.core.invoke('get_system_stats');
 
   const cpuPercent = Math.round(stats.cpu_usage);
-  const ramPercent = stats.total_memory_mb > 0
-    ? Math.round((stats.used_memory_mb / stats.total_memory_mb) * 100)
-    : 0;
+  const ramPercent =
+    stats.total_memory_mb > 0
+      ? Math.round((stats.used_memory_mb / stats.total_memory_mb) * 100)
+      : 0;
 
   const disks = stats.disks.map(d => {
     const percent = d.total_mb > 0 ? Math.round((d.used_mb / d.total_mb) * 100) : 0;
@@ -45,7 +46,6 @@ widget.onRefresh(async () => {
   const allowedInterfaces = window.__config?.interfaces ?? [];
   const networks = stats.networks
     .filter(n => allowedInterfaces.length === 0 || allowedInterfaces.includes(n.name))
-    .filter(n => n.rx_bytes > 0 || n.tx_bytes > 0)
     .map(n => ({
       name: n.name,
       rx: formatBytes(Math.round(n.rx_bytes / elapsed)) + '/s',
@@ -63,4 +63,4 @@ widget.onRefresh(async () => {
     disks,
     networks,
   });
-});
+}, 2000);

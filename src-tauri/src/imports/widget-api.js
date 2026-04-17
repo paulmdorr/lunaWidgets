@@ -1,6 +1,7 @@
 window.__actionHandlers = {};
 window.__state = {};
 window.__renderFn = null;
+window.__shouldRender = true;
 window.widget = {
   onRefresh: (fn, delay = window.__config?.updateInterval ?? 500) => {
     fn();
@@ -27,7 +28,7 @@ window.widget = {
     const tmpl = typeof callback === 'string' ? callback : window.__widgetTemplate;
     const after = typeof callback === 'function' ? callback : null;
     window.__renderFn = s => {
-      if (!tmpl) return;
+      if (!tmpl || !window.__shouldRender) return;
       const html = Mustache.render(tmpl, s);
       const appHTML = document.getElementById('app');
       morphdom(appHTML, `<div id="app">${html}</div>`);
@@ -55,6 +56,8 @@ window.widget = {
       text: () => Promise.resolve(result.body),
     };
   },
+  pauseRender: () => (window.__shouldRender = false),
+  resumeRender: () => (window.__shouldRender = true),
 };
 
 document.addEventListener('mousedown', e => {

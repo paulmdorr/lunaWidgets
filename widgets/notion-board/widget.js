@@ -157,6 +157,7 @@ function attachEventListeners() {
       e.dataTransfer.setData('sourceStatus', rowEl.dataset.status);
       isDragging = true;
       window.__isDragging = true;
+      widget.pauseRender();
       document.querySelectorAll('.drop-overlay').forEach(o => {
         if (!o.parentElement.contains(rowEl)) o.classList.add('active');
       });
@@ -164,6 +165,7 @@ function attachEventListeners() {
     rowEl.addEventListener('dragend', () => {
       isDragging = false;
       window.__isDragging = false;
+      widget.resumeRender();
       document.querySelectorAll('.drop-overlay').forEach(o => o.classList.remove('active'));
       if (pendingState) {
         const s = pendingState;
@@ -219,7 +221,13 @@ widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
   }
 
   try {
-    await updateRowStatus(token, rowId, state.statusPropertyName, state.statusPropertyType, targetStatus);
+    await updateRowStatus(
+      token,
+      rowId,
+      state.statusPropertyName,
+      state.statusPropertyType,
+      targetStatus
+    );
   } catch (e) {
     state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: sourceStatus } : r));
     widget.setState(processState(state));
@@ -237,4 +245,4 @@ widget.onRefresh(async () => {
   } catch (e) {
     console.error('Failed to fetch Notion data:', e);
   }
-});
+}, 30000);

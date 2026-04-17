@@ -19,6 +19,8 @@ A lightweight desktop widget platform built with Tauri 2. Widgets are Mustache t
 - **Ctrl+drag** — reposition any widget by holding Ctrl and dragging
 - **Position persistence** — window positions and sizes are saved across restarts
 - **Live reload** — reload all widgets from the tray without restarting the app
+- **Configurable refresh rate** — set the polling interval per widget via `onRefresh(fn, delay)` or `updateInterval` in `config.json`
+- **Smart re-rendering** — DOM diffing via morphdom, only changed nodes are updated
 - **System stats** — built-in API to read CPU, RAM, disk, and network usage
 - **System tray** — reload all widgets or quit from the tray icon
 - **Tiny footprint** — uses the system WebView, no bundled Chromium
@@ -47,7 +49,6 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
 
 ## (Possible) Future Features
 
-- Configurable refresh rate per widget (currently fixed at 5 seconds for `onRefresh`)
 - First-run setup and onboarding
 - Config UI — manage and configure widgets from a settings window
 - Widget permissions — restrict which APIs each widget can access
@@ -191,16 +192,16 @@ Merges partial state and triggers a re-render:
 widget.setState({ count: 1 }); // only updates count
 ```
 
-#### `widget.onRefresh(fn)`
+#### `widget.onRefresh(fn, delay?)`
 
-Calls `fn` immediately and then every 5 seconds. Use this for polling external data:
+Calls `fn` immediately and then on a repeating interval. `delay` is in milliseconds and defaults to `window.__config.updateInterval ?? 1000`. Use this for polling external data:
 
 ```js
 widget.onRefresh(async () => {
   const res = await widget.fetch('https://api.example.com/data');
   const data = await res.json();
   widget.setState({ title: data.title });
-});
+}, 30000); // poll every 30 seconds
 ```
 
 #### `widget.fetch(url, options?)`
