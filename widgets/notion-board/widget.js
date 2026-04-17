@@ -156,7 +156,6 @@ function attachEventListeners() {
       e.dataTransfer.setData('rowId', rowEl.dataset.id);
       e.dataTransfer.setData('sourceStatus', rowEl.dataset.status);
       isDragging = true;
-      window.__isDragging = true;
       widget.pauseRender();
       document.querySelectorAll('.drop-overlay').forEach(o => {
         if (!o.parentElement.contains(rowEl)) o.classList.add('active');
@@ -164,7 +163,6 @@ function attachEventListeners() {
     });
     rowEl.addEventListener('dragend', () => {
       isDragging = false;
-      window.__isDragging = false;
       widget.resumeRender();
       document.querySelectorAll('.drop-overlay').forEach(o => o.classList.remove('active'));
       if (pendingState) {
@@ -205,12 +203,9 @@ widget.render(() => {
 const { token, pageId } = window.__config;
 let state = null;
 let isUpdating = false;
-let lastMoveTime = 0;
-const MOVE_COOLDOWN = 15000;
 
 widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
   isUpdating = true;
-  lastMoveTime = Date.now();
   state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: targetStatus } : r));
 
   const processed = processState(state);
@@ -228,6 +223,8 @@ widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
       state.statusPropertyType,
       targetStatus
     );
+    state = await fetchDatabase(token, pageId);
+    widget.setState(processState(state));
   } catch (e) {
     state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: sourceStatus } : r));
     widget.setState(processState(state));
@@ -237,8 +234,7 @@ widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
 });
 
 widget.onRefresh(async () => {
-  if (isUpdating || window.__isDragging) return;
-  if (Date.now() - lastMoveTime < MOVE_COOLDOWN) return;
+  if (isUpdating || isDragging) return;
   try {
     state = await fetchDatabase(token, pageId);
     widget.setState(processState(state));
