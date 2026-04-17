@@ -7,6 +7,7 @@ use tauri::Manager;
 mod commands;
 
 const MUSTACHE_JS: &str = include_str!("imports/mustache.min.js");
+const MORPHDOM: &str = include_str!("imports/morphdom.min.js");
 const WIDGET_API: &str = include_str!("imports/widget-api.js");
 
 // Structs
@@ -72,6 +73,7 @@ fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Res
 fn build_init_script() -> String {
     format!(
         r#"{MUSTACHE_JS}
+{MORPHDOM}
 {WIDGET_API}
 (async () => {{
     const base = window.location.href.replace('template.html', '');

@@ -28,7 +28,9 @@ window.widget = {
     const after = typeof callback === 'function' ? callback : null;
     window.__renderFn = s => {
       if (!tmpl) return;
-      document.getElementById('app').innerHTML = Mustache.render(tmpl, s);
+      const html = Mustache.render(tmpl, s);
+      const appHTML = document.getElementById('app');
+      morphdom(appHTML, `<div id="app">${html}</div>`);
       if (after) after();
     };
     if (document.readyState === 'loading') {
