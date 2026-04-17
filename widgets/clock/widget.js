@@ -20,4 +20,4 @@ function tick() {
 }
 
 tick();
-setInterval(tick, 1000);
+widget.onRefresh(tick, 1000);

@@ -2,9 +2,9 @@ window.__actionHandlers = {};
 window.__state = {};
 window.__renderFn = null;
 window.widget = {
-  onRefresh: (fn) => {
+  onRefresh: (fn, delay = window.__config?.updateInterval ?? 500) => {
     fn();
-    setInterval(fn, 5000);
+    setInterval(fn, delay);
   },
   action: (name, payload) => {
     const handler = window.__actionHandlers[name];
@@ -13,20 +13,20 @@ window.widget = {
   onAction: (name, fn) => {
     window.__actionHandlers[name] = fn;
   },
-  useState: (initial) => {
+  useState: initial => {
     window.__state = { ...initial };
     return window.__state;
   },
-  setState: (partial) => {
+  setState: partial => {
     window.__state = { ...window.__state, ...partial };
     if (window.__renderFn && document.readyState !== 'loading') {
       window.__renderFn(window.__state);
     }
   },
-  render: (callback) => {
+  render: callback => {
     const tmpl = typeof callback === 'string' ? callback : window.__widgetTemplate;
     const after = typeof callback === 'function' ? callback : null;
-    window.__renderFn = (s) => {
+    window.__renderFn = s => {
       if (!tmpl) return;
       document.getElementById('app').innerHTML = Mustache.render(tmpl, s);
       if (after) after();
@@ -55,6 +55,6 @@ window.widget = {
   },
 };
 
-document.addEventListener('mousedown', (e) => {
+document.addEventListener('mousedown', e => {
   if (e.ctrlKey) window.__TAURI__.core.invoke('start_dragging');
 });
