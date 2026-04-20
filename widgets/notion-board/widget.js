@@ -1,6 +1,5 @@
 const NOTION_API = 'https://api.notion.com/v1';
 const NOTION_VERSION = '2022-06-28';
-
 const STATUS_COLORS = {
   gray: '#9b9b9b',
   brown: '#c07a5a',
@@ -13,6 +12,7 @@ const STATUS_COLORS = {
   red: '#d44c47',
   default: '#9b9b9b',
 };
+const LAST_MOVE_WAIT_TIME = 5000;
 
 function notionHeaders(token) {
   return {
@@ -58,13 +58,19 @@ async function fetchDatabase(token, databaseId) {
 
   for (const [name, prop] of Object.entries(schemaProps)) {
     if (prop.type === 'status') {
-      statusGroups = prop.status.groups.map(g => ({ name: g.name, color: g.color }));
+      statusGroups = prop.status.groups.map(g => ({
+        name: g.name,
+        color: g.color,
+      }));
       statusPropertyName = name;
       statusPropertyType = 'status';
       break;
     }
     if (prop.type === 'select') {
-      statusGroups = prop.select.options.map(o => ({ name: o.name, color: o.color }));
+      statusGroups = prop.select.options.map(o => ({
+        name: o.name,
+        color: o.color,
+      }));
       statusPropertyName = name;
       statusPropertyType = 'select';
       break;
@@ -74,7 +80,10 @@ async function fetchDatabase(token, databaseId) {
   const rows = [];
   let cursor;
   do {
-    const body = JSON.stringify({ page_size: 100, ...(cursor ? { start_cursor: cursor } : {}) });
+    const body = JSON.stringify({
+      page_size: 100,
+      ...(cursor ? { start_cursor: cursor } : {}),
+    });
     const res = await widget.fetch(`${NOTION_API}/databases/${databaseId}/query`, {
       method: 'POST',
       headers: notionHeaders(token),
@@ -148,96 +157,109 @@ function processState(data) {
 }
 
 let isDragging = false;
-let pendingState = null;
+let listenerController = null;
 
 function attachEventListeners() {
+  if (listenerController) listenerController.abort();
+
+  listenerController = new AbortController();
+  const { signal } = listenerController;
+
   document.querySelectorAll('.row').forEach(rowEl => {
-    rowEl.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('rowId', rowEl.dataset.id);
-      e.dataTransfer.setData('sourceStatus', rowEl.dataset.status);
-      isDragging = true;
-      widget.pauseRender();
-      document.querySelectorAll('.drop-overlay').forEach(o => {
-        if (!o.parentElement.contains(rowEl)) o.classList.add('active');
-      });
-    });
-    rowEl.addEventListener('dragend', () => {
-      isDragging = false;
-      widget.resumeRender();
-      document.querySelectorAll('.drop-overlay').forEach(o => o.classList.remove('active'));
-      if (pendingState) {
-        const s = pendingState;
-        pendingState = null;
-        window.__renderFn(s);
-      }
-    });
+    rowEl.addEventListener(
+      'dragstart',
+      e => {
+        e.dataTransfer.setData('rowId', rowEl.dataset.id);
+        e.dataTransfer.setData('sourceStatus', rowEl.dataset.status);
+        isDragging = true;
+        widget.pauseRender();
+        document.querySelectorAll('.drop-overlay').forEach(o => {
+          if (!o.parentElement.contains(rowEl)) o.classList.add('active');
+        });
+      },
+      { signal }
+    );
+    rowEl.addEventListener(
+      'dragend',
+      () => {
+        isDragging = false;
+        widget.resumeRender();
+        document.querySelectorAll('.drop-overlay').forEach(o => o.classList.remove('active'));
+      },
+      { signal }
+    );
   });
 
   document.querySelectorAll('.drop-overlay').forEach(overlay => {
     const groupName = overlay.dataset.group;
-    overlay.addEventListener('dragover', e => e.preventDefault());
-    overlay.addEventListener('dragenter', () => overlay.classList.add('hover'));
-    overlay.addEventListener('dragleave', () => overlay.classList.remove('hover'));
-    overlay.addEventListener('drop', e => {
-      e.preventDefault();
-      overlay.classList.remove('hover');
-      const rowId = e.dataTransfer.getData('rowId');
-      const sourceStatus = e.dataTransfer.getData('sourceStatus');
-      if (!rowId || sourceStatus === groupName) return;
+    overlay.addEventListener('dragover', e => e.preventDefault(), { signal });
+    overlay.addEventListener('dragenter', () => overlay.classList.add('hover'), { signal });
+    overlay.addEventListener('dragleave', () => overlay.classList.remove('hover'), { signal });
+    overlay.addEventListener(
+      'drop',
+      e => {
+        e.preventDefault();
+        overlay.classList.remove('hover');
+        const rowId = e.dataTransfer.getData('rowId');
+        const sourceStatus = e.dataTransfer.getData('sourceStatus');
+        if (!rowId || sourceStatus === groupName) return;
 
-      const draggedEl = document.querySelector(`[data-id="${rowId}"]`);
-      if (draggedEl) {
-        draggedEl.dataset.status = groupName;
-        overlay.parentElement.insertBefore(draggedEl, overlay);
-      }
+        const draggedEl = document.querySelector(`[data-id="${rowId}"]`);
+        if (draggedEl) {
+          draggedEl.dataset.status = groupName;
+          overlay.parentElement.insertBefore(draggedEl, overlay);
+        }
 
-      widget.action('moveItem', { rowId, targetStatus: groupName, sourceStatus });
-    });
+        widget.action('moveItem', {
+          rowId,
+          targetStatus: groupName,
+          sourceStatus,
+        });
+      },
+      { signal }
+    );
   });
 }
 
-widget.render(() => {
-  attachEventListeners();
-});
+widget.renderWithCallback(attachEventListeners);
 
 const { token, pageId } = window.__config;
-let state = null;
+let notionData = null;
 let isUpdating = false;
+let lastMoveTime = 0;
 
 widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
-  isUpdating = true;
-  state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: targetStatus } : r));
+  fetchController = new AbortController();
 
-  const processed = processState(state);
-  if (isDragging) {
-    pendingState = processed;
-  } else {
-    widget.setState(processed);
-  }
+  isUpdating = true;
+  notionData.rows = notionData.rows.map(r => (r.id === rowId ? { ...r, status: targetStatus } : r));
+  widget.store = processState(notionData);
+  lastMoveTime = Date.now();
 
   try {
     await updateRowStatus(
       token,
       rowId,
-      state.statusPropertyName,
-      state.statusPropertyType,
+      notionData.statusPropertyName,
+      notionData.statusPropertyType,
       targetStatus
     );
-    state = await fetchDatabase(token, pageId);
-    widget.setState(processState(state));
   } catch (e) {
-    state.rows = state.rows.map(r => (r.id === rowId ? { ...r, status: sourceStatus } : r));
-    widget.setState(processState(state));
+    notionData.rows = notionData.rows.map(r =>
+      r.id === rowId ? { ...r, status: sourceStatus } : r
+    );
+    widget.store = processState(notionData);
   } finally {
     isUpdating = false;
   }
 });
 
 widget.onRefresh(async () => {
-  if (isUpdating || isDragging) return;
+  const hasJustMoved = Date.now() - lastMoveTime < LAST_MOVE_WAIT_TIME;
+  if (isUpdating || isDragging || hasJustMoved) return;
   try {
-    state = await fetchDatabase(token, pageId);
-    widget.setState(processState(state));
+    notionData = await fetchDatabase(token, pageId);
+    widget.store = processState(notionData);
   } catch (e) {
     console.error('Failed to fetch Notion data:', e);
   }

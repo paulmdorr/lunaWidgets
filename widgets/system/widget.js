@@ -1,7 +1,7 @@
 let lastRefreshTime = Date.now();
 
 function formatBytes(bytes) {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0 || bytes === Infinity) return '0 B';
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / 1024 / 1024).toFixed(1) + ' MB';
@@ -16,8 +16,6 @@ function usageColor(percent) {
   if (percent >= 60) return 'orange';
   return 'green';
 }
-
-widget.render();
 
 widget.onRefresh(async () => {
   const now = Date.now();
@@ -52,7 +50,7 @@ widget.onRefresh(async () => {
       tx: formatBytes(Math.round(n.tx_bytes / elapsed)) + '/s',
     }));
 
-  widget.setState({
+  widget.store = {
     cpu_usage: stats.cpu_usage,
     cpu_percent: cpuPercent,
     cpu_color: usageColor(cpuPercent),
@@ -62,5 +60,5 @@ widget.onRefresh(async () => {
     ram_color: usageColor(ramPercent),
     disks,
     networks,
-  });
+  };
 }, 2000);

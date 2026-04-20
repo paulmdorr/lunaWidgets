@@ -159,48 +159,55 @@ body {
 
 The logic layer. Has access to the `widget` API and `Mustache` globally.
 
-#### `widget.render(callback?)`
+#### `widget.store`
 
-Renders `template.mustache` into `#app` whenever state changes. Call once to set up:
+A reactive state object. Assigning to it or mutating any property automatically triggers a re-render via DOM diffing — only changed nodes are updated.
+
+Replace the whole store at once:
 
 ```js
-widget.render();
+widget.store = { time: '12:00', day: 'Monday' };
 ```
 
-Pass a callback if you need to run code after each render (e.g. re-attaching event listeners):
+Or update a single property:
 
 ```js
-widget.render(() => {
+widget.store.time = '12:01'; // only re-renders what changed
+```
+
+Multiple synchronous assignments are batched into a single render:
+
+```js
+widget.store.time = '12:01';
+widget.store.day = 'Tuesday';
+// → one render, not two
+```
+
+The store is deeply reactive — nested objects and arrays trigger renders when mutated too:
+
+```js
+widget.store.items[0].name = 'updated'; // triggers render
+```
+
+#### `widget.renderWithCallback(fn)`
+
+By default, rendering is automatic — no setup needed. Call this only if you need to run code after each render, such as re-attaching event listeners:
+
+```js
+widget.renderWithCallback(() => {
   attachEventListeners();
 });
 ```
 
-#### `widget.useState(initial)`
-
-Sets the initial state. Returns the state object:
-
-```js
-widget.useState({ count: 0, label: 'hello' });
-widget.render();
-```
-
-#### `widget.setState(partial)`
-
-Merges partial state and triggers a re-render:
-
-```js
-widget.setState({ count: 1 }); // only updates count
-```
-
 #### `widget.onRefresh(fn, delay?)`
 
-Calls `fn` immediately and then on a repeating interval. `delay` is in milliseconds and defaults to `window.__config.updateInterval ?? 1000`. Use this for polling external data:
+Calls `fn` immediately and then on a repeating interval. `delay` is in milliseconds and defaults to `window.__config.updateInterval ?? 500`. Use this for polling external data:
 
 ```js
 widget.onRefresh(async () => {
   const res = await widget.fetch('https://api.example.com/data');
   const data = await res.json();
-  widget.setState({ title: data.title });
+  widget.store = { title: data.title };
 }, 30000); // poll every 30 seconds
 ```
 
@@ -224,7 +231,7 @@ Communication channel for user interactions in the template back to widget.js:
 ```js
 // widget.js
 widget.onAction('increment', ({ amount }) => {
-  widget.setState({ count: window.__state.count + amount });
+  widget.store.count += amount;
 });
 
 // template.mustache (via inline onclick or attached listener)
@@ -285,17 +292,11 @@ body {
 **widget.js**
 
 ```js
-widget.useState({ time: '' });
-widget.render();
-
-function tick() {
-  widget.setState({
+widget.onRefresh(() => {
+  widget.store = {
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  });
-}
-
-tick();
-setInterval(tick, 1000);
+  };
+}, 1000);
 ```
 
 ## Project Structure

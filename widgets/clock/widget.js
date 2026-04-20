@@ -1,5 +1,4 @@
-widget.useState({ time: '', day: '', date: '' });
-widget.render();
+widget.store = { time: '', day: '', date: '' };
 
 function tick() {
   const now = new Date();
@@ -11,12 +10,12 @@ function tick() {
     time = time.slice(0, 5);
   }
 
-  widget.setState({
+  widget.store = {
     time,
     day: now.toLocaleDateString([], { weekday: 'long' }),
     date: now.toLocaleDateString([], { day: 'numeric', month: 'long' }),
     period,
-  });
+  };
 }
 
 tick();

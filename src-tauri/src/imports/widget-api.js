@@ -1,44 +1,71 @@
-window.__actionHandlers = {};
-window.__state = {};
-window.__renderFn = null;
-window.__shouldRender = true;
+let __renderPending = false;
+let __renderMissed = false;
+let __shouldRender = true;
+const __actionHandlers = {};
+let __renderCallback = null;
+let __store = {};
+const __render = s => {
+  const html = Mustache.render(window.__widgetTemplate, s);
+  const appHTML = document.getElementById('app');
+  morphdom(appHTML, `<div id="app">${html}</div>`);
+  if (__renderCallback && typeof __renderCallback == 'function') __renderCallback();
+};
+
+function scheduleRender() {
+  if (!__shouldRender) {
+    __renderMissed = true;
+    return;
+  }
+
+  if (__renderPending) return;
+  __renderPending = true;
+
+  queueMicrotask(() => {
+    __renderPending = false;
+    __render(__store);
+  });
+}
+
+const __proxyCache = new WeakMap();
+
+function reactive(obj) {
+  if (__proxyCache.has(obj)) return __proxyCache.get(obj);
+
+  const proxy = new Proxy(obj, {
+    get: (target, key) => {
+      const val = target[key];
+      return val && typeof val === 'object' ? reactive(val) : val;
+    },
+    set: (target, key, value) => {
+      // note: if value is an object/array, === won't deep-compare so replacements always re-render
+      if (value === target[key]) return true;
+      target[key] = value;
+      scheduleRender();
+      return true;
+    },
+  });
+
+  __proxyCache.set(obj, proxy);
+
+  return proxy;
+}
+
+__store = reactive({});
+
 window.widget = {
   onRefresh: (fn, delay = window.__config?.updateInterval ?? 500) => {
     fn();
     setInterval(fn, delay);
   },
   action: (name, payload) => {
-    const handler = window.__actionHandlers[name];
+    const handler = __actionHandlers[name];
     if (handler) handler(payload);
   },
   onAction: (name, fn) => {
-    window.__actionHandlers[name] = fn;
+    __actionHandlers[name] = fn;
   },
-  useState: initial => {
-    window.__state = { ...initial };
-    return window.__state;
-  },
-  setState: partial => {
-    window.__state = { ...window.__state, ...partial };
-    if (window.__renderFn && document.readyState !== 'loading') {
-      window.__renderFn(window.__state);
-    }
-  },
-  render: callback => {
-    const tmpl = typeof callback === 'string' ? callback : window.__widgetTemplate;
-    const after = typeof callback === 'function' ? callback : null;
-    window.__renderFn = s => {
-      if (!tmpl || !window.__shouldRender) return;
-      const html = Mustache.render(tmpl, s);
-      const appHTML = document.getElementById('app');
-      morphdom(appHTML, `<div id="app">${html}</div>`);
-      if (after) after();
-    };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => window.__renderFn(window.__state));
-    } else {
-      window.__renderFn(window.__state);
-    }
+  renderWithCallback: callback => {
+    __renderCallback = callback;
   },
   fetch: async (url, options = {}) => {
     const result = await window.__TAURI__.core.invoke('widget_fetch', {
@@ -56,9 +83,24 @@ window.widget = {
       text: () => Promise.resolve(result.body),
     };
   },
-  pauseRender: () => (window.__shouldRender = false),
-  resumeRender: () => (window.__shouldRender = true),
+  pauseRender: () => (__shouldRender = false),
+  resumeRender: () => {
+    __shouldRender = true;
+
+    if (__renderMissed) {
+      __renderMissed = false;
+      scheduleRender();
+    }
+  },
 };
+
+Object.defineProperty(window.widget, 'store', {
+  get: () => __store,
+  set: value => {
+    __store = reactive(value);
+    scheduleRender();
+  },
+});
 
 document.addEventListener('mousedown', e => {
   if (e.ctrlKey) window.__TAURI__.core.invoke('start_dragging');
