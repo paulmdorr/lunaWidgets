@@ -1,5 +1,6 @@
 {
   "token": "",
   "pageId": "",
-  "layout": "horizontal"
+  "layout": "horizontal",
+  "statusPropertyName": "Status"
 }

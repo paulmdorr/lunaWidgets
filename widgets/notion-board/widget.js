@@ -14,6 +14,8 @@ const STATUS_COLORS = {
 };
 const LAST_MOVE_WAIT_TIME = 5000;
 
+const { token, pageId, layout, statusPropertyName } = window.__config;
+
 function notionHeaders(token) {
   return {
     Authorization: `Bearer ${token}`,
@@ -36,11 +38,13 @@ function extractTitle(obj) {
   return 'Untitled';
 }
 
-function extractStatus(props) {
-  for (const val of Object.values(props)) {
-    if (val.type === 'status') return val.status?.name ?? null;
-    if (val.type === 'select') return val.select?.name ?? null;
-  }
+function extractStatus(props, propertyName, propertyType) {
+  const property = props[propertyName];
+
+  if (!property) return null;
+  if (propertyType === 'status') return property.status?.name ?? null;
+  if (propertyType === 'select') return property.select?.name ?? null;
+
   return null;
 }
 
@@ -52,33 +56,10 @@ async function fetchDatabase(token, databaseId) {
   const dbData = await dbRes.json();
 
   const schemaProps = dbData.properties;
-  let statusGroups = [];
-  let statusPropertyName = 'Status';
-  let statusPropertyType = 'status';
-
-  for (const [name, prop] of Object.entries(schemaProps)) {
-    if (prop.type === 'status') {
-      statusGroups = prop.status.groups.map(g => ({
-        name: g.name,
-        color: g.color,
-      }));
-      statusPropertyName = name;
-      statusPropertyType = 'status';
-      break;
-    }
-    if (prop.type === 'select') {
-      statusGroups = prop.select.options.map(o => ({
-        name: o.name,
-        color: o.color,
-      }));
-      statusPropertyName = name;
-      statusPropertyType = 'select';
-      break;
-    }
-  }
-
+  const prop = schemaProps[statusPropertyName];
   const rows = [];
   let cursor;
+
   do {
     const body = JSON.stringify({
       page_size: 100,
@@ -95,7 +76,7 @@ async function fetchDatabase(token, databaseId) {
       rows.push({
         id: row.id,
         title: extractTitle(row),
-        status: extractStatus(row.properties),
+        status: extractStatus(row.properties, statusPropertyName, prop.type),
       });
     }
     cursor = data.has_more ? data.next_cursor : undefined;
@@ -105,9 +86,12 @@ async function fetchDatabase(token, databaseId) {
     id: databaseId,
     title: extractTitle(dbData),
     rows,
-    statusGroups,
+    statusGroups:
+      prop.type === 'status'
+        ? prop.status.groups.map(g => ({ name: g.name, color: g.color }))
+        : prop.select.options.map(o => ({ name: o.name, color: o.color })),
     statusPropertyName,
-    statusPropertyType,
+    statusPropertyType: prop.type,
   };
 }
 
@@ -127,7 +111,7 @@ async function updateRowStatus(token, rowId, statusPropertyName, statusPropertyT
 }
 
 function processState(data) {
-  const isHorizontal = window.__config.layout === 'horizontal';
+  const isHorizontal = layout === 'horizontal';
   const ordered = data.statusGroups.map(g => g.name);
   const ungrouped = data.rows.filter(r => !r.status || !ordered.includes(r.status));
 
@@ -223,7 +207,6 @@ function attachEventListeners() {
 
 widget.renderWithCallback(attachEventListeners);
 
-const { token, pageId } = window.__config;
 let notionData = null;
 let isUpdating = false;
 let lastMoveTime = 0;
