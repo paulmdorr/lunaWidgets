@@ -25,6 +25,34 @@ A lightweight desktop widget platform built with Tauri 2. Widgets are Mustache t
 - **System tray** — reload all widgets or quit from the tray icon
 - **Tiny footprint** — uses the system WebView, no bundled Chromium
 
+## Example Widgets
+
+Luna Widgets ships with four built-in widgets to use as a starting point.
+
+### Clock
+
+A minimal clock with date display.
+
+![Clock widget](screenshots/clock.jpg)
+
+### Weather
+
+Current conditions via [Open-Meteo](https://open-meteo.com/) — no API key required. Configure your location in `config.json`.
+
+![Weather widget](screenshots/weather.jpg)
+
+### System Monitor
+
+Live CPU, RAM, disk, and network usage.
+
+![System Monitor widget](screenshots/system.jpg)
+
+### Notion Board
+
+A Kanban board synced to a Notion database. Supports drag-and-drop to move items between columns.
+
+![Notion Board widget](screenshots/notion-board.jpg)
+
 ## Linux Support
 
 Linux is partially supported. The app runs and widgets work, but there are known limitations depending on the display server.
