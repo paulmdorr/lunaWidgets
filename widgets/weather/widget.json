@@ -1,0 +1,8 @@
+{
+  "name": "Weather",
+  "width": 200,
+  "height": 120,
+  "resizable": true,
+  "transparent": true,
+  "decorations": false
+}

@@ -1,0 +1,57 @@
+@import url('weather-icons.min.css');
+
+@font-face {
+  font-family: 'Pacifico';
+  src: url('Pacifico-Regular.ttf');
+}
+
+body {
+  margin: 0;
+  background: transparent;
+  color: white;
+  cursor: default;
+  font-family: Pacifico, sans-serif;
+  user-select: none;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.weather {
+  text-align: center;
+}
+
+.info {
+  display: flex;
+  flex-direction: row;
+}
+
+.info div {
+  padding: 10px;
+}
+
+.temp {
+  font-size: 48px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.condition {
+  font-size: 44px;
+  margin-top: 4px;
+}
+
+.city {
+  font-size: 24px;
+  margin-top: 4px;
+}
+
+.icon {
+  font-size: 70px;
+  margin-bottom: 10px;
+}
