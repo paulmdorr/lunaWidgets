@@ -10,6 +10,8 @@ const __render = s => {
   morphdom(appHTML, `<div id="app">${html}</div>`);
   if (__renderCallback && typeof __renderCallback == 'function') __renderCallback();
 };
+const __invoke = window.__TAURI__.core.invoke;
+delete window.__TAURI__;
 
 function scheduleRender() {
   if (!__shouldRender) {
@@ -68,7 +70,7 @@ window.widget = {
     __renderCallback = callback;
   },
   fetch: async (url, options = {}) => {
-    const result = await window.__TAURI__.core.invoke('widget_fetch', {
+    const result = await __invoke('widget_fetch', {
       request: {
         url,
         method: options.method || 'GET',
@@ -83,6 +85,7 @@ window.widget = {
       text: () => Promise.resolve(result.body),
     };
   },
+  getSystemStats: () => __invoke('get_system_stats'),
   pauseRender: () => (__shouldRender = false),
   resumeRender: () => {
     __shouldRender = true;
@@ -103,5 +106,5 @@ Object.defineProperty(window.widget, 'store', {
 });
 
 document.addEventListener('mousedown', e => {
-  if (e.ctrlKey) window.__TAURI__.core.invoke('start_dragging');
+  if (e.ctrlKey) __invoke('start_dragging');
 });

@@ -22,7 +22,7 @@ widget.onRefresh(async () => {
   const elapsed = (now - lastRefreshTime) / 1000;
   lastRefreshTime = now;
 
-  const stats = await window.__TAURI__.core.invoke('get_system_stats');
+  const stats = await widget.getSystemStats();
 
   const cpuPercent = Math.round(stats.cpu_usage);
   const ramPercent =
