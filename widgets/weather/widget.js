@@ -23,7 +23,7 @@ const WEATHER_CODES = {
 };
 const REFRESH_RATE = 5 * 60 * 1000;
 
-const { latitude, longitude, units = 'celsius', city } = window.__config;
+const { latitude, longitude, units = 'celsius', city } = widget.config;
 const tempUnit = units === 'fahrenheit' ? '°F' : '°C';
 const temperatureUnit = units === 'fahrenheit' ? 'fahrenheit' : 'celsius';
 

@@ -1,3 +1,4 @@
+const { interfaces } = widget.config;
 let lastRefreshTime = Date.now();
 
 function formatBytes(bytes) {
@@ -41,7 +42,7 @@ widget.onRefresh(async () => {
     };
   });
 
-  const allowedInterfaces = window.__config?.interfaces ?? [];
+  const allowedInterfaces = interfaces ?? [];
   const networks = stats.networks
     .filter(n => allowedInterfaces.length === 0 || allowedInterfaces.includes(n.name))
     .map(n => ({

@@ -85,8 +85,8 @@ fn build_init_script() -> String {
         fetch(base + 'template.mustache').catch(() => null),
         fetch(base + 'widget.js').catch(() => null),
     ]);
-    window.__config = configRes?.ok ? await configRes.json() : {{}};
-    window.__widgetTemplate = templateRes?.ok ? await templateRes.text() : '';
+    widget.config = configRes?.ok ? await configRes.json() : {{}};
+    window.__setWidgetTemplate(templateRes?.ok ? await templateRes.text() : '');
     const __js = widgetRes?.ok ? await widgetRes.text() : '';
     if (__js) new Function(__js)();
 }})();

@@ -14,7 +14,7 @@ const STATUS_COLORS = {
 };
 const LAST_MOVE_WAIT_TIME = 5000;
 
-const { token, pageId, layout, statusPropertyName } = window.__config;
+const { token, pageId, layout, statusPropertyName } = widget.config;
 
 function notionHeaders(token) {
   return {

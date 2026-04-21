@@ -229,7 +229,7 @@ widget.renderWithCallback(() => {
 
 #### `widget.onRefresh(fn, delay?)`
 
-Calls `fn` immediately and then on a repeating interval. `delay` is in milliseconds and defaults to `window.__config.updateInterval ?? 500`. Use this for polling external data:
+Calls `fn` immediately and then on a repeating interval. `delay` is in milliseconds and defaults to `widget.config.updateInterval ?? 500`. Use this for polling external data:
 
 ```js
 widget.onRefresh(async () => {
@@ -254,21 +254,23 @@ const data = await res.json();
 
 #### `widget.action(name, payload)` / `widget.onAction(name, fn)`
 
-Communication channel for user interactions in the template back to widget.js:
+Communication channel for user interactions back to widget.js. Actions can be triggered from inline handlers in the template or from JS event listeners:
+
+```mustache
+{{! template.mustache }}
+<button onclick="widget.action('increment', { amount: 1 })">+</button>
+```
 
 ```js
 // widget.js
 widget.onAction('increment', ({ amount }) => {
   widget.store.count += amount;
 });
-
-// template.mustache (via inline onclick or attached listener)
-widget.action('increment', { amount: 1 });
 ```
 
-#### `window.__config`
+#### `widget.config`
 
-Values from `config.json` are available as `window.__config`:
+Values from `config.json` are available as `widget.config`:
 
 ```json
 // config.json
@@ -280,7 +282,7 @@ Values from `config.json` are available as `window.__config`:
 
 ```js
 // widget.js
-const { apiKey } = window.__config;
+const { apiKey } = widget.config;
 ```
 
 ### Minimal example

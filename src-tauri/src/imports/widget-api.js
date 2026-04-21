@@ -4,14 +4,22 @@ let __shouldRender = true;
 const __actionHandlers = {};
 let __renderCallback = null;
 let __store = {};
+
+const __invoke = window.__TAURI__.core.invoke;
+delete window.__TAURI__;
+
+let __widgetTemplate = '';
+window.__setWidgetTemplate = t => {
+  __widgetTemplate = t;
+  delete window.__setWidgetTemplate;
+};
+
 const __render = s => {
-  const html = Mustache.render(window.__widgetTemplate, s);
+  const html = Mustache.render(__widgetTemplate, s);
   const appHTML = document.getElementById('app');
   morphdom(appHTML, `<div id="app">${html}</div>`);
   if (__renderCallback && typeof __renderCallback == 'function') __renderCallback();
 };
-const __invoke = window.__TAURI__.core.invoke;
-delete window.__TAURI__;
 
 function scheduleRender() {
   if (!__shouldRender) {
@@ -55,7 +63,7 @@ function reactive(obj) {
 __store = reactive({});
 
 window.widget = {
-  onRefresh: (fn, delay = window.__config?.updateInterval ?? 500) => {
+  onRefresh: (fn, delay = widget.config?.updateInterval ?? 500) => {
     fn();
     setInterval(fn, delay);
   },
