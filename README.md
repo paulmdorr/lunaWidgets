@@ -347,6 +347,7 @@ notion-widget/
 │   └── tauri.conf.json
 ├── widgets/                # Built-in example widgets
 │   ├── clock/
+│   ├── weather/
 │   ├── system/
 │   └── notion-board/
 ├── package.json
