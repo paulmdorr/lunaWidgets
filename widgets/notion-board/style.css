@@ -15,10 +15,15 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   font-size: 13px;
   color: var(--text-primary);
   background: var(--bg-primary);
@@ -49,6 +54,7 @@ html, body {
   flex-direction: column;
   gap: 2px;
   position: relative;
+  overflow-y: auto;
 }
 
 .group.horizontal {
@@ -61,6 +67,19 @@ html, body {
   align-items: center;
   gap: 6px;
   margin-bottom: 4px;
+}
+
+.group::-webkit-scrollbar {
+  width: 4px;
+}
+
+.group::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.group::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
 }
 
 .dot {
