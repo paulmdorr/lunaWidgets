@@ -86,6 +86,21 @@ window.widget = {
     };
   },
   getSystemStats: () => __invoke('get_system_stats'),
+  setLoading: isLoading => {
+    const appElement = document.getElementById('app');
+    if (!appElement) return;
+    if (isLoading) {
+      appElement.innerHTML = '<div class="widget-loading">Loading...</div>';
+    } else {
+      scheduleRender();
+    }
+  },
+  setError: message => {
+    const appElement = document.getElementById('app');
+    if (!appElement) return;
+    __shouldRender = false;
+    appElement.innerHTML = `<div class="widget-error">${message}</div>`;
+  },
   pauseRender: () => (__shouldRender = false),
   resumeRender: () => {
     __shouldRender = true;

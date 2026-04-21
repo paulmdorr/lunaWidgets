@@ -27,21 +27,36 @@ const { latitude, longitude, units = 'celsius', city } = window.__config;
 const tempUnit = units === 'fahrenheit' ? '°F' : '°C';
 const temperatureUnit = units === 'fahrenheit' ? 'fahrenheit' : 'celsius';
 
-widget.onRefresh(async () => {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=${temperatureUnit}&wind_speed_unit=kmh`;
-  const res = await widget.fetch(url);
-  if (!res.ok) return;
-  const data = await res.json();
-  const weather = WEATHER_CODES[data.current.weather_code] ?? {
-    condition: 'Unknown',
-    icon: 'wi-na',
-  };
+let isFirstLoad = true;
 
-  widget.store = {
-    temperature: Math.round(data.current.temperature_2m),
-    tempUnit,
-    condition: weather.condition,
-    icon: weather.icon,
-    city,
-  };
+widget.onRefresh(async () => {
+  if (isFirstLoad) widget.setLoading(true);
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=${temperatureUnit}&wind_speed_unit=kmh`;
+    const res = await widget.fetch(url);
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const weather = WEATHER_CODES[data.current.weather_code] ?? {
+      condition: 'Unknown',
+      icon: 'wi-na',
+    };
+
+    widget.store = {
+      temperature: Math.round(data.current.temperature_2m),
+      tempUnit,
+      condition: weather.condition,
+      icon: weather.icon,
+      city,
+    };
+  } catch {
+    widget.setError('Failed to load weather');
+  } finally {
+    if (isFirstLoad) {
+      isFirstLoad = false;
+      widget.setLoading(false);
+    }
+  }
 }, REFRESH_RATE);

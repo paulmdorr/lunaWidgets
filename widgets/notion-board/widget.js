@@ -210,6 +210,7 @@ widget.renderWithCallback(attachEventListeners);
 let notionData = null;
 let isUpdating = false;
 let lastMoveTime = 0;
+let isFirstLoad = true;
 
 widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
   fetchController = new AbortController();
@@ -240,10 +241,16 @@ widget.onAction('moveItem', async ({ rowId, targetStatus, sourceStatus }) => {
 widget.onRefresh(async () => {
   const hasJustMoved = Date.now() - lastMoveTime < LAST_MOVE_WAIT_TIME;
   if (isUpdating || isDragging || hasJustMoved) return;
+  if (isFirstLoad) widget.setLoading(true);
   try {
     notionData = await fetchDatabase(token, pageId);
     widget.store = processState(notionData);
   } catch (e) {
-    console.error('Failed to fetch Notion data:', e);
+    widget.setError('Failed to load Notion board');
+  } finally {
+    if (isFirstLoad) {
+      isFirstLoad = false;
+      widget.setLoading(false);
+    }
   }
 }, 30000);

@@ -10,6 +10,7 @@ mod commands;
 const MUSTACHE_JS: &str = include_str!("imports/mustache.min.js");
 const MORPHDOM: &str = include_str!("imports/morphdom.min.js");
 const WIDGET_API: &str = include_str!("imports/widget-api.js");
+const WIDGET_BASE_CSS: &str = include_str!("imports/widget-base.css");
 
 // Structs
 
@@ -30,12 +31,13 @@ struct WidgetManifest {
 
 fn serve_widget_file(base_dir: &std::path::Path, path: &str) -> tauri::http::Response<Vec<u8>> {
     if path.ends_with("/template.html") {
-        let html = concat!(
-            "<!doctype html><html><head>",
-            "<meta charset=\"UTF-8\"/>",
-            "<link rel=\"stylesheet\" href=\"style.css\"/>",
-            "<link rel=\"icon\" href=\"data:,\">",
-            "</head><body><div id=\"app\"></div></body></html>"
+        let html = format!(
+            "<!doctype html><html><head>\
+            <meta charset=\"UTF-8\"/>\
+            <link rel=\"stylesheet\" href=\"style.css\"/>\
+            <link rel=\"icon\" href=\"data:,\">\
+            <style>{WIDGET_BASE_CSS}</style>\
+            </head><body><div id=\"app\"></div></body></html>"
         );
         return tauri::http::Response::builder()
             .header("Content-Type", "text/html")
