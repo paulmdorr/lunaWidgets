@@ -3,6 +3,7 @@ use std::io::prelude::*;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::Manager;
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 mod commands;
 
@@ -263,6 +264,15 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|app, event| match event {
+            tauri::RunEvent::WindowEvent {
+                event: tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_),
+                ..
+            } => {
+                app.save_window_state(StateFlags::all()).ok();
+            }
+            _ => {}
+        });
 }
