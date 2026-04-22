@@ -123,7 +123,7 @@ Controls the window appearance:
 | `transparent` | boolean | `false`  | Transparent window background     |
 | `decorations` | boolean | `true`   | Show native window title bar      |
 
-> Changes to `widget.json` or `widget.js` require a full app restart to take effect. `template.mustache`, `style.css`, and `config.json` are picked up by **Reload Widgets** in the tray.
+> Changes to `widget.json` require a full app restart to take effect. `widget.js`, `template.mustache`, `style.css`, and `config.json` are picked up by **Reload Widgets** in the tray.
 
 ### template.mustache
 
