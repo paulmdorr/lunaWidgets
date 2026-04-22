@@ -25,34 +25,6 @@ A lightweight desktop widget platform built with Tauri 2. Widgets are Mustache t
 - **System tray** — reload all widgets or quit from the tray icon
 - **Tiny footprint** — uses the system WebView, no bundled Chromium
 
-## Example Widgets
-
-Luna Widgets ships with four built-in widgets to use as a starting point.
-
-### Clock
-
-A minimal clock with date display.
-
-![Clock widget](screenshots/clock.jpg)
-
-### Weather
-
-Current conditions via [Open-Meteo](https://open-meteo.com/) — no API key required. Configure your location in `config.json`.
-
-![Weather widget](screenshots/weather.jpg)
-
-### System Monitor
-
-Live CPU, RAM, disk, and network usage.
-
-![System Monitor widget](screenshots/system.jpg)
-
-### Notion Board
-
-A Kanban board synced to a Notion database. Supports drag-and-drop to move items between columns.
-
-![Notion Board widget](screenshots/notion-board.jpg)
-
 ## Linux Support
 
 Linux is partially supported. The app runs and widgets work, but there are known limitations depending on the display server.
@@ -155,7 +127,7 @@ Controls the window appearance:
 
 ### template.mustache
 
-The HTML content rendered inside `#app`. Uses [Mustache](https://mustache.github.io/) syntax — variables from `widget.setState` are available directly:
+The HTML content rendered inside `#app`. Uses [Mustache](https://mustache.github.io/) syntax — variables from `widget.store` are available directly:
 
 ```mustache
 <div class="card">
@@ -270,7 +242,7 @@ widget.onAction('increment', ({ amount }) => {
 
 #### `widget.config`
 
-Values from `config.json` are available as `widget.config`:
+Values from `config.json` are available as `widget.config`. The object is read-only — mutations are silently ignored:
 
 ```json
 // config.json
@@ -353,3 +325,51 @@ notion-widget/
 ├── package.json
 └── vite.config.ts
 ```
+
+## Example Widgets
+
+Luna Widgets ships with four built-in widgets to use as a starting point.
+
+### Clock
+
+A minimal clock with date display.
+
+![Clock widget](screenshots/clock.jpg)
+
+### Weather
+
+Current conditions via [Open-Meteo](https://open-meteo.com/) — no API key required.
+
+![Weather widget](screenshots/weather.jpg)
+
+| Key         | Type   | Default   | Description                                  |
+| ----------- | ------ | --------- | -------------------------------------------- |
+| `latitude`  | number | `51.5`    | Location latitude                            |
+| `longitude` | number | `-0.12`   | Location longitude                           |
+| `city`      | string | `London`  | Display name shown on the widget             |
+| `units`     | string | `celsius` | Temperature unit — `celsius` or `fahrenheit` |
+
+### System Monitor
+
+Live CPU, RAM, disk, and network usage.
+
+![System Monitor widget](screenshots/system.jpg)
+
+| Key          | Type     | Default | Description                                                                                                                                                   |
+| ------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `interfaces` | string[] | `[]`    | Network interfaces to display — e.g. `["Wi-Fi", "Ethernet"]`. Empty shows all. Run `ipconfig` on Windows or `ip link` on Linux/macOS to find interface names. |
+
+### Notion Board
+
+A Kanban board synced to a Notion database. Supports drag-and-drop to move items between columns.
+
+![Notion Board widget](screenshots/notion-board.jpg)
+
+| Key                  | Type   | Default      | Description                                       |
+| -------------------- | ------ | ------------ | ------------------------------------------------- |
+| `token`              | string | —            | Notion integration token                          |
+| `databaseId`         | string | —            | Notion database ID                                |
+| `statusPropertyName` | string | `Status`     | Name of the status or select property to group by |
+| `layout`             | string | `horizontal` | Column layout — `horizontal` or `vertical`        |
+
+To get your integration token and database ID, follow the [Notion integration guide](https://developers.notion.com/docs/create-a-notion-integration).
