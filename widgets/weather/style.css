@@ -12,6 +12,7 @@ body {
   cursor: default;
   font-family: Pacifico, sans-serif;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 #app {
@@ -37,7 +38,6 @@ body {
 
 .temp {
   font-size: 48px;
-  font-weight: bold;
   line-height: 1;
 }
 

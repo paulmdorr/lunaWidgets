@@ -349,6 +349,8 @@ Current conditions via [Open-Meteo](https://open-meteo.com/) — no API key requ
 | `city`      | string | `London`  | Display name shown on the widget             |
 | `units`     | string | `celsius` | Temperature unit — `celsius` or `fahrenheit` |
 
+You can find your latitude and longitude at [latlong.net](https://www.latlong.net).
+
 ### System Monitor
 
 Live CPU, RAM, disk, and network usage.
