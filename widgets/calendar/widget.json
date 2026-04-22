@@ -1,0 +1,8 @@
+{
+  "name": "Calendar",
+  "width": 300,
+  "height": 400,
+  "transparent": true,
+  "decorations": false,
+  "resizable": true
+}

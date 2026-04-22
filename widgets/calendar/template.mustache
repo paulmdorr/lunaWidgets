@@ -1,0 +1,21 @@
+<div class="calendar">
+  <div class="header">{{monthName}} {{year}}</div>
+  <div class="grid">
+    <div class="day-name">Su</div>
+    <div class="day-name">Mo</div>
+    <div class="day-name">Tu</div>
+    <div class="day-name">We</div>
+    <div class="day-name">Th</div>
+    <div class="day-name">Fr</div>
+    <div class="day-name">Sa</div>
+    {{#weeks}}{{#days}}
+    <div
+      class="day{{#isToday}} today{{/isToday}}{{#empty}} empty{{/empty}}"
+      data-events="{{eventTitles}}"
+    >
+      {{^empty}}<span class="number">{{number}}</span>{{#bars}}<span class="bar{{#isEmpty}} empty{{/isEmpty}}" style="background:{{color}}"></span>{{/bars}}{{/empty}}
+    </div>
+    {{/days}}{{/weeks}}
+  </div>
+  <div class="tooltip"></div>
+</div>
