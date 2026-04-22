@@ -12,18 +12,18 @@ A lightweight desktop widget platform built with Tauri 2. Widgets are Mustache t
 
 ## Features
 
-- **Platforms** — Windows, macOS, and Linux ([partial support](#linux-support))
-- **Widget platform** — load any number of self-contained widgets from a directory
-- **Mustache templates** — declarative HTML templates with automatic re-rendering
-- **Always-on-bottom** — widgets sit behind all other windows like wallpaper
-- **Ctrl+drag** — reposition any widget by holding Ctrl and dragging
-- **Position persistence** — window positions and sizes are saved across restarts
-- **Live reload** — reload all widgets from the tray without restarting the app
-- **Configurable refresh rate** — set the polling interval per widget via `onRefresh(fn, delay)` or `updateInterval` in `config.json`
-- **Smart re-rendering** — DOM diffing via morphdom, only changed nodes are updated
-- **System stats** — built-in API to read CPU, RAM, disk, and network usage
-- **System tray** — reload all widgets or quit from the tray icon
-- **Tiny footprint** — uses the system WebView, no bundled Chromium
+- **Platforms**: Windows, macOS, and Linux ([partial support](#linux-support))
+- **Widget platform**: load any number of self-contained widgets from a directory
+- **Mustache templates**: declarative HTML templates with automatic re-rendering
+- **Always-on-bottom**: widgets sit behind all other windows like wallpaper
+- **Ctrl+drag**: reposition any widget by holding Ctrl and dragging
+- **Position persistence**: window positions and sizes are saved across restarts
+- **Live reload**: reload all widgets from the tray without restarting the app
+- **Configurable refresh rate**: set the polling interval per widget via `onRefresh(fn, delay)` or `updateInterval` in `config.json`
+- **Smart re-rendering**: DOM diffing via morphdom, only changed nodes are updated
+- **System stats**: built-in API to read CPU, RAM, disk, and network usage
+- **System tray**: reload all widgets or quit from the tray icon
+- **Tiny footprint**: uses the system WebView, no bundled Chromium
 
 ## Linux Support
 
@@ -33,8 +33,8 @@ Tested on GNOME Wayland (Ubuntu 24.04):
 
 - Widgets load and run ✓
 - Size saving ✓
-- Always-on-bottom ✗ — GNOME does not support the wlr-layer-shell protocol
-- Position saving ✗ — Wayland does not allow apps to set arbitrary window positions by design
+- Always-on-bottom ✗ GNOME does not support the wlr-layer-shell protocol
+- Position saving ✗ Wayland does not allow apps to set arbitrary window positions by design
 
 X11 and wlroots-based compositors (Sway, Hyprland) should work better based on how the code is structured, but have not been tested yet.
 
@@ -50,16 +50,16 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
 ## (Possible) Future Features
 
 - First-run setup and onboarding
-- Config UI — manage and configure widgets from a settings window
-- Widget permissions — restrict which APIs each widget can access
-- Full Linux support — always-on-bottom and position saving on GNOME Wayland
+- Config UI: manage and configure widgets from a settings window
+- Widget permissions: restrict which APIs each widget can access
+- Full Linux support: always-on-bottom and position saving on GNOME Wayland
 
 ## Prerequisites
 
 - [Bun](https://bun.sh/) (v1.0+)
 - [Rust](https://rustup.rs/) (stable)
 - **Windows**: WebView2 (included with Windows 11)
-- **macOS**: Xcode Command Line Tools — `xcode-select --install`
+- **macOS**: Xcode Command Line Tools (`xcode-select --install`)
 - **Linux**: see [Linux Build Dependencies](#linux-build-dependencies)
 
 ## Running
@@ -92,11 +92,11 @@ A widget is a folder with the following files:
 
 ```
 my-widget/
-├── widget.json         # required — manifest
-├── widget.js           # required — logic
-├── template.mustache   # recommended — HTML template
-├── style.css           # recommended — styles
-└── config.json         # optional — user config
+├── widget.json         # manifest (required)
+├── widget.js           # logic (required)
+├── template.mustache   # HTML template (recommended)
+├── style.css           # styles (recommended)
+└── config.json         # user config (optional)
 ```
 
 ### widget.json
@@ -117,8 +117,8 @@ Controls the window appearance:
 | Field         | Type    | Default  | Description                       |
 | ------------- | ------- | -------- | --------------------------------- |
 | `name`        | string  | `Widget` | Window title                      |
-| `width`       | number  | —        | Initial width in pixels           |
-| `height`      | number  | —        | Initial height in pixels          |
+| `width`       | number  | -        | Initial width in pixels           |
+| `height`      | number  | -        | Initial height in pixels          |
 | `resizable`   | boolean | `true`   | Whether the window can be resized |
 | `transparent` | boolean | `false`  | Transparent window background     |
 | `decorations` | boolean | `true`   | Show native window title bar      |
@@ -127,7 +127,7 @@ Controls the window appearance:
 
 ### template.mustache
 
-The HTML content rendered inside `#app`. Uses [Mustache](https://mustache.github.io/) syntax — variables from `widget.store` are available directly:
+The HTML content rendered inside `#app`. Uses [Mustache](https://mustache.github.io/) syntax; variables from `widget.store` are available directly:
 
 ```mustache
 <div class="card">
@@ -141,7 +141,7 @@ The HTML content rendered inside `#app`. Uses [Mustache](https://mustache.github
 
 ### style.css
 
-Standard CSS. Loaded automatically — no `<link>` tag needed. Target `body` and `#app` for layout:
+Standard CSS. Loaded automatically, no `<link>` tag needed. Target `body` and `#app` for layout:
 
 ```css
 body {
@@ -161,7 +161,7 @@ The logic layer. Has access to the `widget` API and `Mustache` globally.
 
 #### `widget.store`
 
-A reactive state object. Assigning to it or mutating any property automatically triggers a re-render via DOM diffing — only changed nodes are updated.
+A reactive state object. Assigning to it or mutating any property automatically triggers a re-render via DOM diffing; only changed nodes are updated.
 
 Replace the whole store at once:
 
@@ -183,7 +183,7 @@ widget.store.day = 'Tuesday';
 // → one render, not two
 ```
 
-The store is deeply reactive — nested objects and arrays trigger renders when mutated too:
+The store is deeply reactive; nested objects and arrays trigger renders when mutated too:
 
 ```js
 widget.store.items[0].name = 'updated'; // triggers render
@@ -191,7 +191,7 @@ widget.store.items[0].name = 'updated'; // triggers render
 
 #### `widget.renderWithCallback(fn)`
 
-By default, rendering is automatic — no setup needed. Call this only if you need to run code after each render, such as re-attaching event listeners:
+By default, rendering is automatic, no setup needed. Call this only if you need to run code after each render, such as re-attaching event listeners:
 
 ```js
 widget.renderWithCallback(() => {
@@ -242,7 +242,7 @@ widget.onAction('increment', ({ amount }) => {
 
 #### `widget.config`
 
-Values from `config.json` are available as `widget.config`. The object is read-only — mutations are silently ignored:
+Values from `config.json` are available as `widget.config`. The object is read-only; mutations are silently ignored:
 
 ```json
 // config.json
@@ -321,6 +321,7 @@ notion-widget/
 │   ├── clock/
 │   ├── weather/
 │   ├── system/
+│   ├── calendar/
 │   └── notion-board/
 ├── package.json
 └── vite.config.ts
@@ -328,7 +329,7 @@ notion-widget/
 
 ## Example Widgets
 
-Luna Widgets ships with four built-in widgets to use as a starting point.
+Luna Widgets ships with five built-in widgets to use as a starting point.
 
 ### Clock
 
@@ -338,16 +339,16 @@ A minimal clock with date display.
 
 ### Weather
 
-Current conditions via [Open-Meteo](https://open-meteo.com/) — no API key required.
+Current conditions via [Open-Meteo](https://open-meteo.com/), no API key required.
 
 ![Weather widget](screenshots/weather.jpg)
 
-| Key         | Type   | Default   | Description                                  |
-| ----------- | ------ | --------- | -------------------------------------------- |
-| `latitude`  | number | `51.5`    | Location latitude                            |
-| `longitude` | number | `-0.12`   | Location longitude                           |
-| `city`      | string | `London`  | Display name shown on the widget             |
-| `units`     | string | `celsius` | Temperature unit — `celsius` or `fahrenheit` |
+| Key         | Type   | Default   | Description                                        |
+| ----------- | ------ | --------- | -------------------------------------------------- |
+| `latitude`  | number | `51.5`    | Location latitude                                  |
+| `longitude` | number | `-0.12`   | Location longitude                                 |
+| `city`      | string | `London`  | Display name shown on the widget                   |
+| `units`     | string | `celsius` | Temperature unit: `celsius` or `fahrenheit`        |
 
 You can find your latitude and longitude at [latlong.net](https://www.latlong.net).
 
@@ -357,9 +358,9 @@ Live CPU, RAM, disk, and network usage.
 
 ![System Monitor widget](screenshots/system.jpg)
 
-| Key          | Type     | Default | Description                                                                                                                                                   |
-| ------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `interfaces` | string[] | `[]`    | Network interfaces to display — e.g. `["Wi-Fi", "Ethernet"]`. Empty shows all. Run `ipconfig` on Windows or `ip link` on Linux/macOS to find interface names. |
+| Key          | Type     | Default | Description                                                                                                                                                  |
+| ------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `interfaces` | string[] | `[]`    | Network interfaces to display: e.g. `["Wi-Fi", "Ethernet"]`. Empty shows all. Run `ipconfig` on Windows or `ip link` on Linux/macOS to find interface names. |
 
 ### Notion Board
 
@@ -369,9 +370,22 @@ A Kanban board synced to a Notion database. Supports drag-and-drop to move items
 
 | Key                  | Type   | Default      | Description                                       |
 | -------------------- | ------ | ------------ | ------------------------------------------------- |
-| `token`              | string | —            | Notion integration token                          |
-| `databaseId`         | string | —            | Notion database ID                                |
+| `token`              | string | -            | Notion integration token                          |
+| `databaseId`         | string | -            | Notion database ID                                |
 | `statusPropertyName` | string | `Status`     | Name of the status or select property to group by |
-| `layout`             | string | `horizontal` | Column layout — `horizontal` or `vertical`        |
+| `layout`             | string | `horizontal` | Column layout: `horizontal` or `vertical`         |
 
 To get your integration token and database ID, follow the [Notion integration guide](https://developers.notion.com/docs/create-a-notion-integration).
+
+### Calendar
+
+A monthly calendar synced to any iCal feed (Google Calendar, Apple Calendar, Outlook, or any service that exposes a private iCal URL).
+
+![Calendar widget](screenshots/calendar.jpg)
+
+| Key              | Type   | Default  | Description                                           |
+| ---------------- | ------ | -------- | ----------------------------------------------------- |
+| `icalUrl`        | string | -        | Private iCal feed URL from your calendar service      |
+| `updateInterval` | number | `900000` | Refresh interval in milliseconds (default 15 minutes) |
+
+Drop `ical.min.js` (from [ical.js releases](https://github.com/mozilla-comm/ical.js/releases)) into the `calendar/` widget folder before using this widget.
