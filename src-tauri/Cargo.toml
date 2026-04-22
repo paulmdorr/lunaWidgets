@@ -1,6 +1,6 @@
 [package]
 name = "luna-widgets"
-version = "0.1.0"
+version = "0.1.1"
 description = "A widget system for desktop using JS and mustache"
 authors = ["Pablo M Dorr"]
 edition = "2021"
