@@ -14,7 +14,7 @@ const STATUS_COLORS = {
 };
 const LAST_MOVE_WAIT_TIME = 5000;
 
-const { token, pageId, layout, statusPropertyName } = widget.config;
+const { token, databaseId, layout, statusPropertyName } = widget.config;
 
 function notionHeaders(token) {
   return {
@@ -243,7 +243,7 @@ widget.onRefresh(async () => {
   if (isUpdating || isDragging || hasJustMoved) return;
   if (isFirstLoad) widget.setLoading(true);
   try {
-    notionData = await fetchDatabase(token, pageId);
+    notionData = await fetchDatabase(token, databaseId);
     widget.store = processState(notionData);
   } catch (e) {
     widget.setError('Failed to load Notion board');

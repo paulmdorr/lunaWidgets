@@ -1,6 +1,6 @@
 {
   "token": "",
-  "pageId": "",
+  "databaseId": "",
   "layout": "horizontal",
   "statusPropertyName": "Status"
 }
