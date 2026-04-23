@@ -1,5 +1,23 @@
 # Changelog
 
+## [v0.2.0] - 2026-04-23
+
+### Added
+
+- Calendar widget:
+  - Monthly grid view synced to any iCal feed (Google Calendar, Apple Calendar, Outlook)
+  - Colored event bars with consistent color per event title across the month
+  - Multi-day event support with lane assignment to keep bars at a consistent height
+  - Tooltip showing event names on hover, with overflow clamping so it stays within the widget
+  - Configurable polling interval via `updateInterval` in `config.json`
+- Version bump script (`scripts/bump-version.js`): accepts `patch`, `minor`, `major`, or an explicit version; updates `package.json`, `tauri.conf.json`, and `Cargo.toml`; creates a dated CHANGELOG entry; supports `--dry-run`
+
+### Changed
+
+- Notion board style updated to match the system and calendar widget aesthetic (dark card, border, Inter font)
+- `widget.config` is now read-only: properties cannot be reassigned or mutated from widget code
+- Widget template is no longer exposed on `window`, keeping it internal to the widget runtime
+
 ## [v0.1.1] - 2026-04-21
 
 ### Added
