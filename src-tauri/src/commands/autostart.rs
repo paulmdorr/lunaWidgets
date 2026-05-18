@@ -56,17 +56,17 @@ pub fn change_autostart<R: Runtime>(app: tauri::AppHandle<R>, open: bool) -> Res
     let autostart_manager = app.autolaunch();
 
     let change = |open: bool| -> Result<(), String> {
-        let mut open_str = String::from("");
+        let open_str;
         if open {
             autostart_manager
                 .enable()
                 .map_err(|_| "enable autostart failed".to_owned())?;
-            open_str = "true".to_owned();
+            open_str = "true";
         } else {
             autostart_manager
                 .disable()
                 .map_err(|_| "disable autostart failed".to_owned())?;
-            open_str = "false".to_owned();
+            open_str = "false";
         }
 
         let path = app

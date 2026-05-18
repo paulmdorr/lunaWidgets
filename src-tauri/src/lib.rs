@@ -3,12 +3,8 @@ use std::io::prelude::*;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::Manager;
-use tauri_plugin_window_state::{AppHandleExt, StateFlags};
-
-mod autostart;
-
-use autostart::{change_autostart, enable_autostart, get_autostart};
 use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 mod commands;
 
@@ -226,8 +222,12 @@ pub fn run() {
             commands::http::widget_fetch,
             commands::window::start_dragging,
             commands::system::get_system_stats,
-            change_autostart,
-            get_autostart,
+            commands::settings::get_app_version,
+            commands::settings::get_widgets_dir,
+            commands::settings::open_widgets_dir,
+            commands::settings::reload_widgets,
+            commands::autostart::change_autostart,
+            commands::autostart::get_autostart,
         ])
         .register_uri_scheme_protocol("widget", |app, request| {
             let base_dir = app.app_handle().path().app_data_dir().unwrap();
@@ -250,8 +250,8 @@ pub fn run() {
                 tauri::WebviewUrl::App("index.html".into()),
             )
             .title("Luna Widgets")
-            .inner_size(320.0, 220.0)
-            .resizable(false)
+            .inner_size(400.0, 300.0)
+            .resizable(true)
             .visible(false)
             .build()?;
 
@@ -275,7 +275,7 @@ pub fn run() {
             TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
-                .menu_on_left_click(false)
+                .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id().as_ref() {
                     "settings" => {
                         if let Some(window) = app.get_webview_window("settings") {
@@ -293,30 +293,29 @@ pub fn run() {
                     "quit" => app.exit(0),
                     _ => {}
                 })
-                .on_tray_icon_event(|tray, event| {
-                    match event {
-                        TrayIconEvent::Click {
-                            button: MouseButton::Left,
-                            button_state: MouseButtonState::Up,
-                            ..
-                        } | TrayIconEvent::DoubleClick {
-                            button: MouseButton::Left,
-                            ..
-                        } => {
-                            if let Some(window) = tray.app_handle().get_webview_window("settings") {
-                                if window.is_visible().unwrap_or(false) {
-                                    window.hide().ok();
-                                } else {
-                                    window.show().ok();
-                                    window.set_focus().ok();
-                                }
+                .on_tray_icon_event(|tray, event| match event {
+                    TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    }
+                    | TrayIconEvent::DoubleClick {
+                        button: MouseButton::Left,
+                        ..
+                    } => {
+                        if let Some(window) = tray.app_handle().get_webview_window("settings") {
+                            if window.is_visible().unwrap_or(false) {
+                                window.hide().ok();
+                            } else {
+                                window.show().ok();
+                                window.set_focus().ok();
                             }
                         }
-                        _ => {}
                     }
+                    _ => {}
                 })
                 .build(app)?;
-            enable_autostart(app);
+            commands::autostart::enable_autostart(app);
 
             Ok(())
         })
