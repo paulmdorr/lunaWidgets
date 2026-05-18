@@ -11,6 +11,9 @@
     {
       "identifier": "http:allow-fetch",
       "allow": [{ "url": "https://**" }]
-    }
+    },
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }

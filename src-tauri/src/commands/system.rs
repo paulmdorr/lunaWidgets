@@ -48,8 +48,8 @@ pub fn get_system_stats(state: tauri::State<std::sync::Mutex<SysState>>) -> Syst
     s.networks.refresh(false);
     s.disks.refresh(false);
 
-    let cpu_usage = s.sys.cpus().iter().map(|c| c.cpu_usage()).sum::<f32>()
-        / s.sys.cpus().len() as f32;
+    let cpu_usage =
+        s.sys.cpus().iter().map(|c| c.cpu_usage()).sum::<f32>() / s.sys.cpus().len() as f32;
 
     let disks = s
         .disks

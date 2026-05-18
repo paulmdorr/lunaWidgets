@@ -5,6 +5,11 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}
 use tauri::Manager;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
+mod autostart;
+
+use autostart::{change_autostart, enable_autostart, get_autostart};
+use tauri_plugin_autostart::MacosLauncher;
+
 mod commands;
 
 const MUSTACHE_JS: &str = include_str!("imports/mustache.min.js");
@@ -210,6 +215,10 @@ fn copy_dir_all(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::AppleScript,
+            None,
+        ))
         .manage(std::sync::Mutex::new(commands::system::SysState::new()))
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_http::init())
@@ -217,6 +226,8 @@ pub fn run() {
             commands::http::widget_fetch,
             commands::window::start_dragging,
             commands::system::get_system_stats,
+            change_autostart,
+            get_autostart,
         ])
         .register_uri_scheme_protocol("widget", |app, request| {
             let base_dir = app.app_handle().path().app_data_dir().unwrap();
@@ -233,37 +244,79 @@ pub fn run() {
 
             load_widgets(app.handle());
 
+            let settings_window = tauri::WebviewWindowBuilder::new(
+                app,
+                "settings",
+                tauri::WebviewUrl::App("index.html".into()),
+            )
+            .title("Luna Widgets")
+            .inner_size(320.0, 220.0)
+            .resizable(false)
+            .visible(false)
+            .build()?;
+
+            let settings_window_hide = settings_window.clone();
+            settings_window.on_window_event(move |event| {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    api.prevent_close();
+                    settings_window_hide.hide().ok();
+                }
+            });
+
+            let settings = MenuItemBuilder::new("Settings").id("settings").build(app)?;
             let reload = MenuItemBuilder::new("Reload Widgets")
                 .id("reload")
                 .build(app)?;
             let quit = MenuItemBuilder::new("Quit").id("quit").build(app)?;
-            let menu = MenuBuilder::new(app).items(&[&reload, &quit]).build()?;
+            let menu = MenuBuilder::new(app)
+                .items(&[&settings, &reload, &quit])
+                .build()?;
 
             TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
+                .menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id().as_ref() {
+                    "settings" => {
+                        if let Some(window) = app.get_webview_window("settings") {
+                            window.show().ok();
+                            window.set_focus().ok();
+                        }
+                    }
                     "reload" => {
-                        for (_, window) in app.webview_windows() {
-                            window.reload().ok();
+                        for (label, window) in app.webview_windows() {
+                            if label != "settings" {
+                                window.reload().ok();
+                            }
                         }
                     }
                     "quit" => app.exit(0),
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        for (_, window) in tray.app_handle().webview_windows() {
-                            window.show().ok();
+                    match event {
+                        TrayIconEvent::Click {
+                            button: MouseButton::Left,
+                            button_state: MouseButtonState::Up,
+                            ..
+                        } | TrayIconEvent::DoubleClick {
+                            button: MouseButton::Left,
+                            ..
+                        } => {
+                            if let Some(window) = tray.app_handle().get_webview_window("settings") {
+                                if window.is_visible().unwrap_or(false) {
+                                    window.hide().ok();
+                                } else {
+                                    window.show().ok();
+                                    window.set_focus().ok();
+                                }
+                            }
                         }
+                        _ => {}
                     }
                 })
                 .build(app)?;
+            enable_autostart(app);
 
             Ok(())
         })
