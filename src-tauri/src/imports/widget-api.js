@@ -104,10 +104,21 @@ window.widget = {
     }
   },
   setError: message => {
-    const appElement = document.getElementById('app');
-    if (!appElement) return;
-    __shouldRender = false;
-    appElement.innerHTML = `<div class="widget-error">${message}</div>`;
+    document.querySelector('.widget-toast')?.remove();
+    const toastElement = document.createElement('div');
+    toastElement.className = 'widget-toast';
+    const iconElement = document.createElement('div');
+    iconElement.className = 'widget-toast-icon';
+    iconElement.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="white" fill-rule="evenodd"><path d="M12 3L21.5 20H2.5z M11 9h2v5.5h-2z M11 16.5h2v2h-2z"/></svg>`;
+    const messageElement = document.createElement('span');
+    messageElement.textContent = message;
+    toastElement.appendChild(iconElement);
+    toastElement.appendChild(messageElement);
+    document.body.appendChild(toastElement);
+    setTimeout(() => {
+      toastElement.classList.add('widget-toast--out');
+      toastElement.addEventListener('animationend', () => toastElement.remove());
+    }, 3000);
   },
   pauseRender: () => (__shouldRender = false),
   resumeRender: () => {
